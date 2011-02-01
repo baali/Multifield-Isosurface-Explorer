@@ -87,11 +87,19 @@ GUI4::GUI4()
 
   // Setting up slider parameters
   horizontalSlider->setRange(dminmax[0], dminmax[1]);
-  horizontalSlider->setTickInterval((dminmax[1] - dminmax[0])/100);
-  horizontalSlider->setSingleStep((dminmax[1] - dminmax[0])/100);
+  // horizontalSlider->setTickInterval((dminmax[1] - dminmax[0])/100);
+  // horizontalSlider->setSingleStep((dminmax[1] - dminmax[0])/100);
+  horizontalSlider->setValue((dminmax[1] + dminmax[0])/2);
+  std::cout<<dminmax[1]<<" "<<dminmax[0]<<" "<<(dminmax[1] + dminmax[0])/2<<endl;
+  //setting initial value of TextLabel
+  QString str;
+  str.sprintf("%d", horizontalSlider->value());
+  label->setText(str);
 
   //Connecting slider with Slot to update IsoValue
   connect(horizontalSlider,SIGNAL(sliderReleased()),this,SLOT(SetIsoValue()));
+  //Updating TextLabel
+  connect(horizontalSlider,SIGNAL(valueChanged(int)), this, SLOT(SetTextLabel(int)));
 
   // create a window to make it stereo capable and give it to QVTKWidget
   vtkRenderWindow* renwin = vtkRenderWindow::New();
@@ -143,7 +151,7 @@ GUI4::GUI4()
   // Setting up Contour filter
   contours = vtkContourFilter::New();
   contours->SetInput(ureader->GetOutput());
-  contours->SetValue(1, (dminmax[1] - dminmax[0])/2);
+  contours->SetValue(0, (dminmax[1] + dminmax[0])/2);
   vtkPolyDataMapper *contMapper = vtkPolyDataMapper::New();
   contMapper->SetInput(contours->GetOutput());
   contMapper->SetScalarRange(0.0, 1.2);
@@ -164,6 +172,12 @@ GUI4::~GUI4()
   Ren2->Delete();
 }
 
+void GUI4::SetTextLabel(int value)
+{
+  QString str;
+  str.sprintf("%d", value);
+  label->setText(str);
+}
 void GUI4::SetIsoValue()
 {
   // Have to make it work in a way that Renderer can update iso-surface automatically.
@@ -172,5 +186,5 @@ void GUI4::SetIsoValue()
   // contActor->GetMapper()->GetInput()->Update();
   // Ren2->AddViewProp(contActor);
   qVTK2->update();
-  std::cout<<contours->GetValue(0)<<endl;
+  // std::cout<<contours->GetValue(0)<<endl;
 }

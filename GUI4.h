@@ -30,6 +30,7 @@
 #include <QMainWindow>
 #include "ui_GUI4.h"
 #include <qslider.h>
+#include <qlabel.h>
 
 class vtkRenderer;
 class vtkEventQtSlotConnect;
@@ -47,6 +48,7 @@ public:
 
 public slots:
   void SetIsoValue();
+  void SetTextLabel(int);
 protected:
   vtkRenderer* Ren1;
   vtkRenderer* Ren2;
