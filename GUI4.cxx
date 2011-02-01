@@ -73,6 +73,26 @@ GUI4::GUI4()
 {
   this->setupUi(this);
   
+  // Setting up vtk reader and Contour filters
+  vtkUnstructuredGridReader *ureader = vtkUnstructuredGridReader::New ();
+  ureader->SetFileName ("/media/sda6/isabel/01-250x250.vtk");
+  ureader->ReadAllScalarsOn ();
+  vtkUnstructuredGrid *uGrid;
+  uGrid = ureader->GetOutput ();
+  uGrid->Update ();
+  vtkDataArray *fArray = NULL;
+  double *dminmax;
+  fArray = uGrid->GetPointData ()->GetScalars ("Pf");
+  dminmax = fArray->GetRange ();
+
+  // Setting up slider parameters
+  horizontalSlider->setRange(dminmax[0], dminmax[1]);
+  horizontalSlider->setTickInterval((dminmax[1] - dminmax[0])/100);
+  horizontalSlider->setSingleStep((dminmax[1] - dminmax[0])/100);
+
+  //Connecting slider with Slot to update IsoValue
+  connect(horizontalSlider,SIGNAL(sliderReleased()),this,SLOT(SetIsoValue()));
+
   // create a window to make it stereo capable and give it to QVTKWidget
   vtkRenderWindow* renwin = vtkRenderWindow::New();
   vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
@@ -103,14 +123,9 @@ GUI4::GUI4()
   view->GetScene()->AddItem(chart);
   vtkPlot *line = chart->AddPlot(vtkChart::LINE);
   line->SetInput(table, 0, 1);
-  line->SetColor(0, 255, 0, 255);
+  line->SetColor(255, 0, 0, 255);
   line->SetWidth(1.0);
 
-  // QVTKInteractor *iren1=qVTK1->GetInteractor();
-  // iren1->SetRenderWindow(view->GetRenderWindow());
-  // std::cout<<"Set Render window"<< endl;
-  // iren1->Initialize();
-  // iren1->Start();
   qVTK1->SetRenderWindow(view->GetRenderWindow());
 
   // create a window to make it stereo capable and give it to QVTKWidget
@@ -122,33 +137,12 @@ GUI4::GUI4()
   renwin->Delete();
 
   QVTKInteractor *iren2=qVTK2->GetInteractor();
-  vtkInteractorStyle *s2=
-    static_cast<vtkInteractorStyle *>(iren2->GetInteractorStyle());
   
-  const double angleSensitivity=0.02;
-  const double translationSensitivity=0.001;
-
-  vtkTDxInteractorStyle *t2=s2->GetTDxStyle();
-  t2->GetSettings()->SetAngleSensitivity(angleSensitivity);
-  t2->GetSettings()->SetTranslationXSensitivity(translationSensitivity);
-  t2->GetSettings()->SetTranslationYSensitivity(translationSensitivity);
-  t2->GetSettings()->SetTranslationZSensitivity(translationSensitivity);
-
   // add a renderer
   Ren2 = vtkRenderer::New();
   qVTK2->GetRenderWindow()->AddRenderer(Ren2);
   
-  // put sphere in other window
-  vtkUnstructuredGridReader *ureader = vtkUnstructuredGridReader::New ();
-  ureader->SetFileName ("/media/sda6/isabel/01-250x250.vtk");
-  ureader->ReadAllScalarsOn ();
-  vtkUnstructuredGrid *uGrid;
-  uGrid = ureader->GetOutput ();
-  uGrid->Update ();
-  vtkDataArray *fArray = NULL;
-  double *dminmax;
-  fArray = uGrid->GetPointData ()->GetScalars ("Pf");
-  dminmax = fArray->GetRange ();
+  // Setting up Contour filter
   contours = vtkContourFilter::New();
   contours->SetInput(ureader->GetOutput());
   contours->SetValue(1, (dminmax[1] - dminmax[0])/2);
@@ -156,126 +150,26 @@ GUI4::GUI4()
   contMapper->SetInput(contours->GetOutput());
   contMapper->SetScalarRange(0.0, 1.2);
   // create an actor for the contours
-  vtkActor *contActor = vtkActor::New();
+  contActor = vtkActor::New();
   contActor->SetMapper(contMapper);
   Ren2->AddViewProp(contActor);
   Ren2->SetBackground(1,1,1);
   contActor->Delete();
   contMapper->Delete();
 
-  Connections = vtkEventQtSlotConnect::New();
-
-  // Connections->Connect(qVTK1->GetRenderWindow()->GetInteractor(), 
-  //                      vtkCommand::EnterEvent,
-  //                      radio1, 
-  //                      SLOT(animateClick()));
-  
-  // // connect window enter event to radio button slot
-  // Connections->Connect(qVTK2->GetRenderWindow()->GetInteractor(), 
-  //                      vtkCommand::EnterEvent,
-  //                      radio2, 
-  //                      SLOT(animateClick()));
-  
-  // update coords as we move through the window
-  Connections->Connect(qVTK1->GetRenderWindow()->GetInteractor(),
-                       vtkCommand::MouseMoveEvent,
-                       this,
-                       SLOT(updateCoords(vtkObject*)));
-  
-  // update coords as we move through the window
-  Connections->Connect(qVTK2->GetRenderWindow()->GetInteractor(),
-                       vtkCommand::MouseMoveEvent,
-                       this,
-                       SLOT(updateCoords(vtkObject*)));
-  // Connection of slider widget with ISO surface value.
-  
-  // connect(this->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(SetIsoValue(int)));
-
-  Connections->PrintSelf(cout, vtkIndent());
 }
 
 GUI4::~GUI4()
 {
   // Ren1->Delete();
   Ren2->Delete();
-
-  Connections->Delete();
 }
 
-void GUI4::SetIsoValue(int isoValue)
+void GUI4::SetIsoValue()
 {
-    contours->SetValue(1, isoValue);
+  int isoValue = horizontalSlider->value();
+  contours->SetValue(0, isoValue);
+  contActor->GetMapper()->GetInput()->Update();
+  Ren2->AddViewProp(contActor);
+  std::cout<<contours->GetValue(0)<<endl;
 }
-
-void GUI4::updateCoords(vtkObject* obj)
-{
-  // get interactor
-  vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
-  // get event position
-  int event_pos[2];
-  iren->GetEventPosition(event_pos);
-  // update label
-  QString str;
-  str.sprintf("x=%d : y=%d", event_pos[0], event_pos[1]);
-  coord->setText(str);
-}
-
-void GUI4::popup(vtkObject * obj, unsigned long, 
-           void * client_data, void *,
-           vtkCommand * command)
-{
-  // A note about context menus in Qt and the QVTKWidget
-  // You may find it easy to just do context menus on right button up,
-  // due to the event proxy mechanism in place.
-  
-  // That usually works, except in some cases.
-  // One case is where you capture context menu events that 
-  // child windows don't process.  You could end up with a second 
-  // context menu after the first one.
-
-  // See QVTKWidget::ContextMenuEvent enum which was added after the 
-  // writing of this example.
-
-  // get interactor
-  vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
-  // consume event so the interactor style doesn't get it
-  command->AbortFlagOn();
-  // get popup menu
-  QMenu* popupMenu = static_cast<QMenu*>(client_data);
-  // get event location
-  int* sz = iren->GetSize();
-  int* position = iren->GetEventPosition();
-  // remember to flip y
-  QPoint pt = QPoint(position[0], sz[1]-position[1]);
-  // map to global
-  QPoint global_pt = popupMenu->parentWidget()->mapToGlobal(pt);
-  // show popup menu at global point
-  popupMenu->popup(global_pt);
-}
-
-void GUI4::color1(QAction* color)
-{
-  // if(color->text() == "Background White")
-  //   Ren1->SetBackground(1,1,1);
-  // else if(color->text() == "Background Black")
-  //   Ren1->SetBackground(0,0,0);
-  // else if(color->text() == "Stereo Rendering")
-  // {
-  //   Ren1->GetRenderWindow()->SetStereoRender(!Ren1->GetRenderWindow()->GetStereoRender());
-  // }
-  qVTK1->update();
-}
-
-void GUI4::color2(QAction* color)
-{
-  if(color->text() == "Background White")
-    this->Ren2->SetBackground(1,1,1);
-  else if(color->text() == "Background Black")
-    this->Ren2->SetBackground(0,0,0);
-  else if(color->text() == "Stereo Rendering")
-  {
-    this->Ren2->GetRenderWindow()->SetStereoRender(!this->Ren2->GetRenderWindow()->GetStereoRender());
-  }
-  qVTK2->update();
-}
-

@@ -36,6 +36,7 @@ class vtkEventQtSlotConnect;
 class vtkObject;
 class vtkCommand;
 class vtkContourFilter;
+class vtkActor;
 
 class GUI4 : public QMainWindow, public Ui::GUI
 {
@@ -45,19 +46,13 @@ public:
   ~GUI4();
 
 public slots:
-  void updateCoords(vtkObject*);
-  void popup(vtkObject * obj, unsigned long, 
-             void * client_data, void *,
-             vtkCommand * command);
-  void color1(QAction*);
-  void color2(QAction*);
-  void SetIsoValue(int);
+  void SetIsoValue();
 protected:
   vtkRenderer* Ren1;
   vtkRenderer* Ren2;
-  vtkEventQtSlotConnect* Connections;
-  QSlider* horizontalSlider;
+  /* QSlider* horizontalSlider; */
   vtkContourFilter* contours;
+  vtkActor *contActor;
 };
 
 #endif // _GUI_h
