@@ -50,7 +50,6 @@ public slots:
 protected:
   vtkRenderer* Ren1;
   vtkRenderer* Ren2;
-  /* QSlider* horizontalSlider; */
   vtkContourFilter* contours;
   vtkActor *contActor;
 };

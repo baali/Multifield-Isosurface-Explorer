@@ -98,8 +98,6 @@ GUI4::GUI4()
   vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
   vtkActor* actor = vtkActor::New();
   
-  // renwin->StereoCapableWindowOn();
-
   // Set up the view
   vtkSmartPointer<vtkContextView> view = 
     vtkSmartPointer<vtkContextView>::New();
@@ -149,6 +147,7 @@ GUI4::GUI4()
   vtkPolyDataMapper *contMapper = vtkPolyDataMapper::New();
   contMapper->SetInput(contours->GetOutput());
   contMapper->SetScalarRange(0.0, 1.2);
+
   // create an actor for the contours
   contActor = vtkActor::New();
   contActor->SetMapper(contMapper);
@@ -167,6 +166,7 @@ GUI4::~GUI4()
 
 void GUI4::SetIsoValue()
 {
+  // Have to make it work in a way that Renderer can update iso-surface automatically.
   int isoValue = horizontalSlider->value();
   contours->SetValue(0, isoValue);
   contActor->GetMapper()->GetInput()->Update();
