@@ -52,6 +52,7 @@ public slots:
   void SetIsoValue();
   void SetTextLabel(int);
   void DisableButton(int);
+  void UpdateSlider(int);
 protected:
   vtkRenderer* Ren1;
   vtkRenderer* Ren2;

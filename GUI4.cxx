@@ -116,6 +116,8 @@ GUI4::GUI4()
   //Connecting Combobox selection with Combobox_2
   connect(comboBox,SIGNAL(currentIndexChanged(int)), this, SLOT(DisableButton(int)));
   connect(comboBox_2,SIGNAL(currentIndexChanged(int)), this, SLOT(DisableButton(int)));
+  //Updating horizontalSlider based on updating comboBox
+  connect(comboBox,SIGNAL(currentIndexChanged(int)), this, SLOT(UpdateSlider(int)));
 
   // create a window to make it stereo capable and give it to QVTKWidget
   vtkRenderWindow* renwin = vtkRenderWindow::New();
@@ -195,6 +197,11 @@ void GUI4::DisableButton(int index)
     pushButton->setEnabled(FALSE);
   else
     pushButton->setEnabled(TRUE);
+}
+
+void GUI4::UpdateSlider(int index)
+{
+
 }
 
 void GUI4::SetTextLabel(int value)
