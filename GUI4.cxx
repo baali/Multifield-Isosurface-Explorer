@@ -80,10 +80,22 @@ GUI4::GUI4()
   vtkUnstructuredGrid *uGrid;
   uGrid = ureader->GetOutput ();
   uGrid->Update ();
+
+  // Setting up parameters for combobox
+  for(int i = 0; i < ureader->GetNumberOfScalarsInFile(); i++)
+    {
+      comboBox->addItem(ureader->GetScalarsNameInFile(i));
+      comboBox_2->addItem(ureader->GetScalarsNameInFile(i));
+    }
+  comboBox_2->setCurrentIndex(1);
+
   vtkDataArray *fArray = NULL;
   double *dminmax;
-  fArray = uGrid->GetPointData ()->GetScalars ("Pf");
+  // This all sucks big time :(
+  std::string scalarName = comboBox->currentText().toStdString();
+  fArray = uGrid->GetPointData ()->GetScalars (scalarName.c_str());
   dminmax = fArray->GetRange ();
+
 
   // Setting up slider parameters
   horizontalSlider->setRange(dminmax[0], dminmax[1]);
@@ -100,6 +112,10 @@ GUI4::GUI4()
   connect(horizontalSlider,SIGNAL(sliderReleased()),this,SLOT(SetIsoValue()));
   //Updating TextLabel
   connect(horizontalSlider,SIGNAL(valueChanged(int)), this, SLOT(SetTextLabel(int)));
+
+  //Connecting Combobox selection with Combobox_2
+  connect(comboBox,SIGNAL(currentIndexChanged(int)), this, SLOT(DisableButton(int)));
+  connect(comboBox_2,SIGNAL(currentIndexChanged(int)), this, SLOT(DisableButton(int)));
 
   // create a window to make it stereo capable and give it to QVTKWidget
   vtkRenderWindow* renwin = vtkRenderWindow::New();
@@ -173,12 +189,21 @@ GUI4::~GUI4()
   Ren2->Delete();
 }
 
+void GUI4::DisableButton(int index)
+{
+  if(comboBox->currentIndex() == comboBox_2->currentIndex())
+    pushButton->setEnabled(FALSE);
+  else
+    pushButton->setEnabled(TRUE);
+}
+
 void GUI4::SetTextLabel(int value)
 {
   QString str;
   str.sprintf("%d", value);
   label->setText(str);
 }
+
 void GUI4::SetIsoValue()
 {
   // Have to make it work in a way that Renderer can update iso-surface automatically.

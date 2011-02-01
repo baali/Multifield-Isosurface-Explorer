@@ -31,6 +31,8 @@
 #include "ui_GUI4.h"
 #include <qslider.h>
 #include <qlabel.h>
+#include <qcombobox.h>
+#include <qpushbutton.h>
 
 class vtkRenderer;
 class vtkEventQtSlotConnect;
@@ -49,6 +51,7 @@ public:
 public slots:
   void SetIsoValue();
   void SetTextLabel(int);
+  void DisableButton(int);
 protected:
   vtkRenderer* Ren1;
   vtkRenderer* Ren2;
