@@ -75,7 +75,7 @@ GUI4::GUI4()
   
   // Setting up vtk reader and Contour filters
   vtkUnstructuredGridReader *ureader = vtkUnstructuredGridReader::New ();
-  ureader->SetFileName ("/media/sda6/isabel/01-250x250.vtk");
+  ureader->SetFileName ("/media/sda6/isabel/48-500x500.vtk");
   ureader->ReadAllScalarsOn ();
   vtkUnstructuredGrid *uGrid;
   uGrid = ureader->GetOutput ();
@@ -169,7 +169,8 @@ void GUI4::SetIsoValue()
   // Have to make it work in a way that Renderer can update iso-surface automatically.
   int isoValue = horizontalSlider->value();
   contours->SetValue(0, isoValue);
-  contActor->GetMapper()->GetInput()->Update();
-  Ren2->AddViewProp(contActor);
+  // contActor->GetMapper()->GetInput()->Update();
+  // Ren2->AddViewProp(contActor);
+  qVTK2->update();
   std::cout<<contours->GetValue(0)<<endl;
 }
