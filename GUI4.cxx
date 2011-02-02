@@ -76,14 +76,20 @@
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
 
+#include <stdio.h>
+#include <sys/time.h>
+
 GUI4::GUI4()
 {
   this->setupUi(this);
   ureader = vtkUnstructuredGridReader::New ();
   uGrid = vtkUnstructuredGrid::new();
+  //Number of bins
   BINS = 100;
-  connect(actionOpen, SIGNAL(triggered()), this, SLOT(OpenFile()));
+  bins = new float[BINS + 10];
+  binst = new float[BINS + 10];
 
+  connect(actionOpen, SIGNAL(triggered()), this, SLOT(OpenFile()));
   //Connecting slider with Slot to update IsoValue
   connect(horizontalSlider,SIGNAL(sliderReleased()),this,SLOT(SetIsoValue()));
   //Updating TextLabel
@@ -238,10 +244,38 @@ void GUI4::SetIsoValue()
   qVTK2->update();
 }
 
+void
+WriteKappa (char *filename)
+{
+  FILE *fp = fopen (filename, "w");
+  double fCurrent = minmax[0];
+  double df = (minmax[1] - minmax[0]) / (double) BINS;
+  if (df > 0)
+    {
+      for (int i = 0; i < BINS; ++i)
+	{
+	  fprintf (fp, "%f, %f\n", fCurrent, bins[i]);
+	  fCurrent += df;
+	}
+    }
+  fclose (fp);
+
+  fp = fopen ("statistics-kappa.csv", "w");
+  fCurrent = minmax[0];
+  df = (minmax[1] - minmax[0]) / (double) BINS;
+  if (df > 0)
+    {
+      for (int i = 0; i < BINS; ++i)
+	{
+	  fprintf (fp, "%f, %f\n", fCurrent, binst[i]);
+	  fCurrent += df;
+	}
+    }
+  fclose (fp);
+}
+
 void GUI4::CalculateKappa()
 {
-  float bins[BINS + 10];
-  float binst[BINS + 10];
 
   vtkDataArray *fArray = NULL;
   vtkDataArray *gArray = NULL;
@@ -271,13 +305,13 @@ void GUI4::CalculateKappa()
       binst[i] = 0;
     }
 
-  float minmax = new float[2];
+  minmax = new float[2];
   double *dminmax;
   dminmax = fArray->GetRange ();
   minmax[0] = (float)dminmax[0];
   minmax[1] = (float)dminmax[1];
   // printf("Mimmax values %f, %f \n", minmax[0], minmax[1]);
-  float increment = (minmax[1] - minmax[0]) / (float) BINS;
+  increment = (minmax[1] - minmax[0]) / (float) BINS;
   // printf("increment is %f\n", increment);
   double *pt;
   timeval tim;
@@ -354,5 +388,5 @@ void GUI4::CalculateKappa()
   gettimeofday(&tim, NULL);
   t3 = tim.tv_sec+(tim.tv_usec/1000000.0);
   std::cout<<"Meanwhile "<<(t3-t2)-totalTime<<" seconds elapsed on CPU\n";
-  WriteKappa (argv[5]);
+  WriteKappa ("kappa.csv");
 }

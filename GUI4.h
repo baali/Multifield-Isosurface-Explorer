@@ -49,6 +49,7 @@ class GUI4 : public QMainWindow, public Ui::GUI
 public:
   GUI4();
   ~GUI4();
+  void WriteKappa(char*);
 
 public slots:
   void OpenFile();
@@ -67,6 +68,11 @@ protected:
   vtkUnstructuredGridReader *ureader;
   vtkUnstructuredGrid *uGrid;
   int BINS;
+  float *bins;
+  float *binst;
+  float *minmax;
+  float increment;
+
   //name more sensible
   /* CL* example; */
 };
