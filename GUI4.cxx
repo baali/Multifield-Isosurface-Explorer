@@ -78,12 +78,13 @@
 
 #include <stdio.h>
 #include <sys/time.h>
+#include <fstream>
 
 GUI4::GUI4()
 {
   this->setupUi(this);
-  ureader = vtkUnstructuredGridReader::New ();
-  uGrid = vtkUnstructuredGrid::new();
+  ureader = vtkUnstructuredGridReader::New();
+  uGrid = vtkUnstructuredGrid::New();
   //Number of bins
   BINS = 100;
   bins = new float[BINS + 10];
@@ -244,8 +245,7 @@ void GUI4::SetIsoValue()
   qVTK2->update();
 }
 
-void
-WriteKappa (char *filename)
+void GUI4::WriteKappa (char *filename)
 {
   FILE *fp = fopen (filename, "w");
   double fCurrent = minmax[0];
@@ -281,9 +281,10 @@ void GUI4::CalculateKappa()
   vtkDataArray *gArray = NULL;
   vtkDataArray *hArray = NULL;
   vtkPoints *points = uGrid->GetPoints ();
-
-  fArray = uGrid->GetPointData ()->GetScalars (argv[2]);
-  gArray = uGrid->GetPointData ()->GetScalars (argv[3]);
+  std::string scalarF = comboBox->currentText().toStdString();
+  std::string scalarG = comboBox_2->currentText().toStdString();;
+  fArray = uGrid->GetPointData ()->GetScalars (scalarF.c_str());
+  gArray = uGrid->GetPointData ()->GetScalars (scalarG.c_str());
   
   int numCells = uGrid->GetNumberOfCells ();
   int ids[8];
@@ -352,7 +353,7 @@ void GUI4::CalculateKappa()
 		      fs[p][j] = hs[p][j] = fArray->GetTuple1 (ids[j]);
 		      if (gArray != NULL)
 			gs[p][j] = gArray->GetTuple1 (ids[j]);
-		    }	      
+		    }
 		}
 	      if ((i+1)%100000 == 0 and i != 0)
 		{		  

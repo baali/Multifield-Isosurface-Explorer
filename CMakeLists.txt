@@ -19,15 +19,21 @@ ELSE(QT_USE_FILE)
   SET(QT_LIBRARIES   ${QT_QT_LIBRARY})
 ENDIF(QT_USE_FILE)
 
+SET( CMAKE_MODULE_PATH ${QtEvents_SOURCE_DIR}/cmake)
+
+FIND_PACKAGE (OPENCL)
+
 SET (SRCS
   main.cxx
 )
 
+SET(OPENCL_INCLUDE /home/baali/Cxx/opencl10)
 # Use the include path and library for Qt that is used by VTK.
 INCLUDE_DIRECTORIES(
         ${QT_INCLUDE_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}
+	${OPENCL_INCLUDE}
 )
 
 INCLUDE_DIRECTORIES(${VTK_TDX_INCLUDE_PATH})
@@ -36,6 +42,11 @@ QT4_WRAP_UI(UI_SRCS GUI4.ui)
 QT4_WRAP_CPP(MOC_SRCS GUI4.h)
 SET(SRCS ${SRCS} ${MOC_SRCS} GUI4.cxx GUI4.h)
 
+SET (LIBCXXFILES cll.cpp util.cpp part2.cpp)
+SET (cllib part2)
+ADD_LIBRARY(${cllib} ${LIBCXXFILES})
+
+SET(CMAKE_CXX_FLAGS "-g -Wall")
 ADD_EXECUTABLE( qtevents MACOSX_BUNDLE ${SRCS} ${UI_SRCS})
 
 TARGET_LINK_LIBRARIES( qtevents
@@ -47,6 +58,8 @@ TARGET_LINK_LIBRARIES( qtevents
   vtkCommon
   vtkHybrid 
   vtkCharts
+  ${cllib}
+  ${OPENCL_LIBRARIES}
 )
 
 

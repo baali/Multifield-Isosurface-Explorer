@@ -42,11 +42,18 @@ class vtkCommand;
 class vtkContourFilter;
 class vtkActor;
 class vtkUnstructuredGridReader;
+class vtkUnstructuredGrid;
 
 class GUI4 : public QMainWindow, public Ui::GUI
 {
   Q_OBJECT
 public:
+  int BINS;
+  float *bins;
+  float *binst;
+  float *minmax;
+  float increment;
+
   GUI4();
   ~GUI4();
   void WriteKappa(char*);
@@ -67,11 +74,6 @@ protected:
   std::string fileName;
   vtkUnstructuredGridReader *ureader;
   vtkUnstructuredGrid *uGrid;
-  int BINS;
-  float *bins;
-  float *binst;
-  float *minmax;
-  float increment;
 
   //name more sensible
   /* CL* example; */
