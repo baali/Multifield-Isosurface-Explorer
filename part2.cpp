@@ -56,7 +56,7 @@ void CL::loadData(Vec4 (*v)[8], float (*fs)[8], float (*gs)[8], float (*hs)[8], 
       err = initial.setArg(1, cl_binsT);
     }
     catch (cl::Error er) {
-        printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
+      printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
     }
     queue.finish();
     // kernel which does initialization of all zeros.
@@ -92,8 +92,8 @@ void CL::popCorn()
   // printf("in popCorn\n");
     //initialize our kernel from the program
     try{
-        kernel = cl::Kernel(program, "part2", &err);
-	summ = cl::Kernel(program, "summ", &err);
+      kernel = cl::Kernel(program, "part2", &err);
+      summ = cl::Kernel(program, "summ", &err);
     }
     catch (cl::Error er) {
         printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
@@ -101,20 +101,20 @@ void CL::popCorn()
     //set the arguements of our kernel
     try
     {
-        err = kernel.setArg(0, cl_v);
-        err = kernel.setArg(1, cl_fs);
-        err = kernel.setArg(2, cl_gs);
-        err = kernel.setArg(3, cl_hs);
-        err = kernel.setArg(4, cl_kf);
-        err = kernel.setArg(5, cl_range);
-        err = kernel.setArg(6, cl_inc);
-        err = kernel.setArg(7, cl_binS);
-        err = kernel.setArg(8, cl_binsT);
+      err = kernel.setArg(0, cl_v);
+      err = kernel.setArg(1, cl_fs);
+      err = kernel.setArg(2, cl_gs);
+      err = kernel.setArg(3, cl_hs);
+      err = kernel.setArg(4, cl_kf);
+      err = kernel.setArg(5, cl_range);
+      err = kernel.setArg(6, cl_inc);
+      err = kernel.setArg(7, cl_binS);
+      err = kernel.setArg(8, cl_binsT);
     }
     catch (cl::Error er) {
-        printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
+      printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
     }
-
+    
     //Wait for the command queue to finish these commands before proceeding
     queue.finish();
     // printf("Done popcorn\n");
@@ -144,7 +144,7 @@ void CL::runKernel(float (*binS)[110], float (*binsT)[110], float bins[110], flo
       err = queue.enqueueWriteBuffer(cl_num, CL_TRUE, 0, sizeof(int), &p, NULL, &event);
     }
     catch (cl::Error er) {
-        printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
+      printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
     }
 
     try {
@@ -162,7 +162,7 @@ void CL::runKernel(float (*binS)[110], float (*binsT)[110], float bins[110], flo
     err = queue.enqueueNDRangeKernel(summ, cl::NullRange, cl::NDRange(110), cl::NullRange, NULL, &event); 
     }
     catch (cl::Error er) {
-        printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
+      printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
     }
     queue.finish();
     // printf("done summ\n");
@@ -171,10 +171,10 @@ void CL::runKernel(float (*binS)[110], float (*binsT)[110], float bins[110], flo
       err = queue.enqueueReadBuffer(cl_binst, CL_TRUE, 0, sizeof(float) * 110 , &binst[0], NULL, &event);
     }
     catch (cl::Error er) {
-        printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
+      printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
     }
     queue.finish();
-
+    
     // for(int i = 0; i < p && flag == 0;i++)
     //   {
     // 	for(int j = 0;j < 100; j++)
