@@ -36,8 +36,6 @@
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include "vtkCommand.h"
-#include "vtkEventQtSlotConnect.h"
-#include "vtkSphereSource.h"
 
 #include "vtkContourFilter.h"
 #include "vtkOutlineFilter.h"
@@ -50,6 +48,15 @@
 #include "vtkHexahedron.h"
 #include "vtkDataSetAttributes.h"
 #include "vtkUnstructuredGridReader.h"
+#include "vtkFloatArray.h"
+#include "vtkByteSwap.h"
+#include "vtkCellArray.h"
+#include "vtkCellType.h"
+
+#include "Util/vector.h"
+#include "Util/matrix.h"
+#include "Util/projective.h"
+#include "cll.h"
 
 #include "vtkTDxInteractorStyleCamera.h"
 #include "vtkTDxInteractorStyleSettings.h"
@@ -74,7 +81,7 @@ GUI4::GUI4()
   this->setupUi(this);
   ureader = vtkUnstructuredGridReader::New ();
   uGrid = vtkUnstructuredGrid::new();
-  
+  BINS = 100;
   connect(actionOpen, SIGNAL(triggered()), this, SLOT(OpenFile()));
 
   //Connecting slider with Slot to update IsoValue
@@ -233,6 +240,9 @@ void GUI4::SetIsoValue()
 
 void GUI4::CalculateKappa()
 {
+  float bins[BINS + 10];
+  float binst[BINS + 10];
+
   vtkDataArray *fArray = NULL;
   vtkDataArray *gArray = NULL;
   vtkDataArray *hArray = NULL;
@@ -345,5 +355,4 @@ void GUI4::CalculateKappa()
   t3 = tim.tv_sec+(tim.tv_usec/1000000.0);
   std::cout<<"Meanwhile "<<(t3-t2)-totalTime<<" seconds elapsed on CPU\n";
   WriteKappa (argv[5]);
-
 }

@@ -66,6 +66,9 @@ protected:
   std::string fileName;
   vtkUnstructuredGridReader *ureader;
   vtkUnstructuredGrid *uGrid;
+  int BINS;
+  //name more sensible
+  /* CL* example; */
 };
 
 #endif // _GUI_h
