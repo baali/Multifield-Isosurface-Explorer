@@ -90,6 +90,10 @@ GUI4::GUI4()
   bins = new float[BINS + 10];
   binst = new float[BINS + 10];
 
+  //clears combobox
+  connect(actionOpen, SIGNAL(triggered()), comboBox, SLOT(clear()));
+  connect(actionOpen, SIGNAL(triggered()), comboBox_2, SLOT(clear()));
+
   connect(actionOpen, SIGNAL(triggered()), this, SLOT(OpenFile()));
   //Connecting slider with Slot to update IsoValue
   connect(horizontalSlider,SIGNAL(sliderReleased()),this,SLOT(SetIsoValue()));
@@ -114,8 +118,14 @@ GUI4::GUI4()
   // Set up the view
   view = vtkContextView::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+  // Add multiple line plots, setting the colors etc
+  chart = vtkChartXY::New();
+  // line = vtkPlot::New();
+  view->GetScene()->AddItem(chart);
+  line = chart->AddPlot(vtkChart::LINE);
+  
   qVTK1->SetRenderWindow(view->GetRenderWindow());
-  Ren1 = view->GetRenderer();
+  // Ren1 = view->GetRenderer();
   // create a window to make it stereo capable and give it to QVTKWidget
   renwin = vtkRenderWindow::New();
   renwin->StereoCapableWindowOn();
@@ -136,7 +146,7 @@ GUI4::GUI4()
 
 GUI4::~GUI4()
 {
-  Ren1->Delete();
+  // Ren1->Delete();
   Ren2->Delete();
 }
 
@@ -145,6 +155,8 @@ void GUI4::OpenFile()
   fileName = QFileDialog::getOpenFileName(this, tr("Open Dataset"), tr("VTK Files (*.vtk)")).toStdString();
   std::cout<<"We can open File here"<<" "<<fileName<<endl;
 
+  if(fileName == "")
+    return;
   ureader->SetFileName(fileName.c_str());
   ureader->ReadAllScalarsOn ();
   std::cout<<"Setting filename done"<<endl;
@@ -263,17 +275,12 @@ void GUI4::WriteKappa (char *filename)
   std::cout << "done Reading file"<< endl;
   vtkTable* table = reader->GetOutput();
 
-  // Add multiple line plots, setting the colors etc
-  vtkSmartPointer<vtkChartXY> chart = 
-    vtkSmartPointer<vtkChartXY>::New();
-  view->GetScene()->AddItem(chart);
-  vtkPlot *line = chart->AddPlot(vtkChart::LINE);
   line->SetInput(table, 0, 1);
   line->SetColor(255, 0, 0, 255);
   line->SetWidth(1.0);
   view->SetInteractor(qVTK1->GetInteractor());
-  qVTK1->GetRenderWindow()->AddRenderer(Ren1);
-  // qVTK1->SetRenderWindow(view->GetRenderWindow());
+  // qVTK1->GetRenderWindow()->AddRenderer(Ren1);
+  qVTK1->SetRenderWindow(view->GetRenderWindow());
   qVTK1->update();
 }
 

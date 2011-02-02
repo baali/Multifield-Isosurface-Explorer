@@ -44,6 +44,8 @@ class vtkActor;
 class vtkUnstructuredGridReader;
 class vtkUnstructuredGrid;
 class vtkContextView;
+class vtkChartXY;
+class vtkPlot;
 
 class GUI4 : public QMainWindow, public Ui::GUI
 {
@@ -76,6 +78,8 @@ protected:
   vtkUnstructuredGridReader *ureader;
   vtkUnstructuredGrid *uGrid;
   vtkContextView *view;
+  vtkChartXY *chart;
+  vtkPlot *line;
   //name more sensible
   /* CL* example; */
 };
