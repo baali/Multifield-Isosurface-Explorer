@@ -73,7 +73,7 @@ GUI4::GUI4()
 {
   this->setupUi(this);
   ureader = vtkUnstructuredGridReader::New ();
-  //ureader = vtkUnstructuredGridReader::New();
+  uGrid = vtkUnstructuredGrid::new();
   
   connect(actionOpen, SIGNAL(triggered()), this, SLOT(OpenFile()));
 
@@ -85,8 +85,12 @@ GUI4::GUI4()
   //Connecting Combobox selection with Combobox_2
   connect(comboBox,SIGNAL(currentIndexChanged(int)), this, SLOT(DisableButton(int)));
   connect(comboBox_2,SIGNAL(currentIndexChanged(int)), this, SLOT(DisableButton(int)));
+
   //Updating horizontalSlider based on updating comboBox
   connect(comboBox,SIGNAL(currentIndexChanged(int)), this, SLOT(UpdateSlider(int)));
+
+  //Connecting calculate button with OpenCL code
+  connect(pushButton, SIGNAL(clicked()), this, SLOT(CalculateKappa()));
 
   // create a window to make it stereo capable and give it to QVTKWidget
   vtkRenderWindow* renwin = vtkRenderWindow::New();
@@ -98,7 +102,6 @@ GUI4::GUI4()
     vtkSmartPointer<vtkContextView>::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
   view->SetInteractor(qVTK1->GetInteractor());
-  // Ren1 = view->GetRenderer();
 
   std::string inputFilename = "He+100-op_csv";
   vtkSmartPointer<vtkDelimitedTextReader> reader =
@@ -154,7 +157,6 @@ void GUI4::OpenFile()
   ureader->ReadAllScalarsOn ();
   std::cout<<"Setting filename done"<<endl;
   // Setting up vtk reader and Contour filters
-  vtkUnstructuredGrid *uGrid;
   uGrid = ureader->GetOutput();
   uGrid->Update ();
 
@@ -227,4 +229,121 @@ void GUI4::SetIsoValue()
   int isoValue = horizontalSlider->value();
   contours->SetValue(0, isoValue);
   qVTK2->update();
+}
+
+void GUI4::CalculateKappa()
+{
+  vtkDataArray *fArray = NULL;
+  vtkDataArray *gArray = NULL;
+  vtkDataArray *hArray = NULL;
+  vtkPoints *points = uGrid->GetPoints ();
+
+  fArray = uGrid->GetPointData ()->GetScalars (argv[2]);
+  gArray = uGrid->GetPointData ()->GetScalars (argv[3]);
+  
+  int numCells = uGrid->GetNumberOfCells ();
+  int ids[8];
+  int idtet[4];
+  Vec4 (*v)[8] = new Vec4[100000][8];
+  float (*fs)[8] = new float[100000][8];
+  float (*gs)[8] = new float[100000][8];
+  float (*hs)[8] = new float[100000][8];
+  int kappaFlag;
+  float (*binS)[110] = new float[100000][110];
+  float (*binsT)[110] = new float[100000][110];
+  
+  if (gArray != NULL)
+    kappaFlag = 1;
+  
+  for (int i = 0; i < BINS + 10; ++i)
+    {
+      bins[i] = 0;
+      binst[i] = 0;
+    }
+
+  float minmax = new float[2];
+  double *dminmax;
+  dminmax = fArray->GetRange ();
+  minmax[0] = (float)dminmax[0];
+  minmax[1] = (float)dminmax[1];
+  // printf("Mimmax values %f, %f \n", minmax[0], minmax[1]);
+  float increment = (minmax[1] - minmax[0]) / (float) BINS;
+  // printf("increment is %f\n", increment);
+  double *pt;
+  timeval tim;
+  double t1, t2, t3;
+
+  gettimeofday(&tim, NULL);
+  t1=tim.tv_sec+(tim.tv_usec/1000000.0);
+  
+  CL example;
+  //load and build our CL program from the file
+  std::ifstream file("../part2.cl");
+  std::string source_str(
+			 std::istreambuf_iterator<char>(file),
+			 (std::istreambuf_iterator<char>()));
+  example.loadProgram(source_str);
+  
+  gettimeofday(&tim, NULL);
+  t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
+  printf("%.6lf seconds for building kernel\n", t2-t1);
+  
+  double totalTime = 0;
+  double tInitial, tFinal;
+  int p = 0;
+  if (increment > 0)
+    {
+      for(int i = 0; i < numCells; i++)
+	{
+	  vtkCell *cell = uGrid->GetCell (i);
+	  if (cell->GetCellType () == VTK_HEXAHEDRON)
+	    {
+	      for (int j = 0; j < 8; j++)
+		{
+		  ids[j] = cell->GetPointId (j);
+		  pt = points->GetPoint (ids[j]);
+		  v[p][j] = Vec4(pt[0], pt[1], pt[2], 1);
+		  if (fArray->GetDataType () == VTK_FLOAT)
+		    {
+		      fs[p][j] = hs[p][j] = fArray->GetTuple1 (ids[j]);
+		      if (gArray != NULL)
+			gs[p][j] = gArray->GetTuple1 (ids[j]);
+		    }	      
+		}
+	      if ((i+1)%100000 == 0 and i != 0)
+		{		  
+		  gettimeofday(&tim, NULL);
+		  tInitial = tim.tv_sec+(tim.tv_usec/1000000.0);
+		  //our load data function sends our initial values to the GPU
+		  example.loadData(v, fs, gs, hs, kappaFlag, minmax, increment, p+1, binS, binsT);
+		  //initialize the kernel
+		  example.popCorn();
+		  example.runKernel(binS, binsT, bins, binst, p+1);
+		  p = -1;
+		  gettimeofday(&tim, NULL);
+		  tFinal = tim.tv_sec+(tim.tv_usec/1000000.0);
+		  totalTime += (tFinal - tInitial);
+		}
+	    }
+	  p += 1;
+	}
+    }  
+  gettimeofday(&tim, NULL);
+  tInitial = tim.tv_sec+(tim.tv_usec/1000000.0);      
+  // Catching up all the remaining values
+  example.loadData(v, fs, gs, hs, kappaFlag, minmax, increment, p, binS, binsT);
+  //initialize the kernel
+  example.popCorn();
+  //this updates the particle system by calling the kernel
+  example.runKernel(binS, binsT, bins, binst, p);
+  gettimeofday(&tim, NULL);
+  tFinal = tim.tv_sec+(tim.tv_usec/1000000.0);
+  totalTime += (tFinal - tInitial);
+  std::cout<<totalTime<<" seconds elapsed on GPU\n";
+  
+  gettimeofday(&tim, NULL);
+  t3 = tim.tv_sec+(tim.tv_usec/1000000.0);
+  std::cout<<"Meanwhile "<<(t3-t2)-totalTime<<" seconds elapsed on CPU\n";
+  WriteKappa (argv[5]);
+
 }

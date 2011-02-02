@@ -56,6 +56,7 @@ public slots:
   void SetTextLabel(int);
   void DisableButton(int);
   void UpdateSlider(int);
+  void CalculateKappa();
 
 protected:
   vtkRenderer* Ren1;
@@ -64,6 +65,7 @@ protected:
   vtkActor *contActor;
   std::string fileName;
   vtkUnstructuredGridReader *ureader;
+  vtkUnstructuredGrid *uGrid;
 };
 
 #endif // _GUI_h
