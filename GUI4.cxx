@@ -117,20 +117,12 @@ GUI4::GUI4()
   
   // Set up the view
   view = vtkContextView::New();
-  view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
-  // Add multiple line plots, setting the colors etc
-  chart = vtkChartXY::New();
-  // line = vtkPlot::New();
-  view->GetScene()->AddItem(chart);
-  line = chart->AddPlot(vtkChart::LINE);
-  
-  qVTK1->SetRenderWindow(view->GetRenderWindow());
+
   // Ren1 = view->GetRenderer();
   // create a window to make it stereo capable and give it to QVTKWidget
   renwin = vtkRenderWindow::New();
   renwin->StereoCapableWindowOn();
 
-  qVTK2->SetUseTDx(true);
   qVTK2->SetRenderWindow(renwin);
   renwin->Delete();
 
@@ -265,6 +257,8 @@ void GUI4::WriteKappa (char *filename)
     }
   fclose (fp);
 
+  view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+
   std::string inputFilename = "kappa.csv";
   vtkSmartPointer<vtkDelimitedTextReader> reader =
     vtkSmartPointer<vtkDelimitedTextReader>::New();
@@ -274,12 +268,13 @@ void GUI4::WriteKappa (char *filename)
   reader->Update();
   std::cout << "done Reading file"<< endl;
   vtkTable* table = reader->GetOutput();
-
+  chart = vtkChartXY::New();
+  view->GetScene()->AddItem(chart);
+  line = chart->AddPlot(vtkChart::LINE);
   line->SetInput(table, 0, 1);
   line->SetColor(255, 0, 0, 255);
-  line->SetWidth(1.0);
+  line->SetWidth(2.0);
   view->SetInteractor(qVTK1->GetInteractor());
-  // qVTK1->GetRenderWindow()->AddRenderer(Ren1);
   qVTK1->SetRenderWindow(view->GetRenderWindow());
   qVTK1->update();
 }
