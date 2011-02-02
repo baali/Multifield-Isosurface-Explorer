@@ -112,32 +112,10 @@ GUI4::GUI4()
   vtkActor* actor = vtkActor::New();
   
   // Set up the view
-  vtkSmartPointer<vtkContextView> view = 
-    vtkSmartPointer<vtkContextView>::New();
+  view = vtkContextView::New();
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
-  view->SetInteractor(qVTK1->GetInteractor());
-
-  std::string inputFilename = "He+100-op_csv";
-  vtkSmartPointer<vtkDelimitedTextReader> reader =
-    vtkSmartPointer<vtkDelimitedTextReader>::New();
-  reader->SetFileName(inputFilename.c_str());
-  reader->DetectNumericColumnsOn();
-  reader->SetFieldDelimiterCharacters(",");
-  reader->Update();
-  std::cout << "done Reading file"<< endl;
-  vtkTable* table = reader->GetOutput();
-
-  // Add multiple line plots, setting the colors etc
-  vtkSmartPointer<vtkChartXY> chart = 
-    vtkSmartPointer<vtkChartXY>::New();
-  view->GetScene()->AddItem(chart);
-  vtkPlot *line = chart->AddPlot(vtkChart::LINE);
-  line->SetInput(table, 0, 1);
-  line->SetColor(255, 0, 0, 255);
-  line->SetWidth(1.0);
-
   qVTK1->SetRenderWindow(view->GetRenderWindow());
-
+  Ren1 = view->GetRenderer();
   // create a window to make it stereo capable and give it to QVTKWidget
   renwin = vtkRenderWindow::New();
   renwin->StereoCapableWindowOn();
@@ -158,7 +136,7 @@ GUI4::GUI4()
 
 GUI4::~GUI4()
 {
-  // Ren1->Delete();
+  Ren1->Delete();
   Ren2->Delete();
 }
 
@@ -181,6 +159,8 @@ void GUI4::OpenFile()
       comboBox_2->addItem(ureader->GetScalarsNameInFile(i));
     }
   comboBox_2->setCurrentIndex(1);
+
+  pushButton->setEnabled(TRUE);
 
   vtkDataArray *fArray = NULL;
   double *dminmax;
@@ -272,11 +252,33 @@ void GUI4::WriteKappa (char *filename)
 	}
     }
   fclose (fp);
+
+  std::string inputFilename = "kappa.csv";
+  vtkSmartPointer<vtkDelimitedTextReader> reader =
+    vtkSmartPointer<vtkDelimitedTextReader>::New();
+  reader->SetFileName(inputFilename.c_str());
+  reader->DetectNumericColumnsOn();
+  reader->SetFieldDelimiterCharacters(",");
+  reader->Update();
+  std::cout << "done Reading file"<< endl;
+  vtkTable* table = reader->GetOutput();
+
+  // Add multiple line plots, setting the colors etc
+  vtkSmartPointer<vtkChartXY> chart = 
+    vtkSmartPointer<vtkChartXY>::New();
+  view->GetScene()->AddItem(chart);
+  vtkPlot *line = chart->AddPlot(vtkChart::LINE);
+  line->SetInput(table, 0, 1);
+  line->SetColor(255, 0, 0, 255);
+  line->SetWidth(1.0);
+  view->SetInteractor(qVTK1->GetInteractor());
+  qVTK1->GetRenderWindow()->AddRenderer(Ren1);
+  // qVTK1->SetRenderWindow(view->GetRenderWindow());
+  qVTK1->update();
 }
 
 void GUI4::CalculateKappa()
 {
-
   vtkDataArray *fArray = NULL;
   vtkDataArray *gArray = NULL;
   vtkDataArray *hArray = NULL;

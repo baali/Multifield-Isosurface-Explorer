@@ -43,6 +43,7 @@ class vtkContourFilter;
 class vtkActor;
 class vtkUnstructuredGridReader;
 class vtkUnstructuredGrid;
+class vtkContextView;
 
 class GUI4 : public QMainWindow, public Ui::GUI
 {
@@ -74,7 +75,7 @@ protected:
   std::string fileName;
   vtkUnstructuredGridReader *ureader;
   vtkUnstructuredGrid *uGrid;
-
+  vtkContextView *view;
   //name more sensible
   /* CL* example; */
 };
