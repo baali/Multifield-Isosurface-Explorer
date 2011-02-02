@@ -72,41 +72,10 @@
 GUI4::GUI4()
 {
   this->setupUi(this);
+  ureader = vtkUnstructuredGridReader::New ();
+  //ureader = vtkUnstructuredGridReader::New();
   
-  // Setting up vtk reader and Contour filters
-  vtkUnstructuredGridReader *ureader = vtkUnstructuredGridReader::New ();
-  ureader->SetFileName ("/media/sda6/isabel/01-250x250.vtk");
-  ureader->ReadAllScalarsOn ();
-  vtkUnstructuredGrid *uGrid;
-  uGrid = ureader->GetOutput ();
-  uGrid->Update ();
-
-  // Setting up parameters for combobox
-  for(int i = 0; i < ureader->GetNumberOfScalarsInFile(); i++)
-    {
-      comboBox->addItem(ureader->GetScalarsNameInFile(i));
-      comboBox_2->addItem(ureader->GetScalarsNameInFile(i));
-    }
-  comboBox_2->setCurrentIndex(1);
-
-  vtkDataArray *fArray = NULL;
-  double *dminmax;
-  // This all sucks big time :(
-  std::string scalarName = comboBox->currentText().toStdString();
-  fArray = uGrid->GetPointData ()->GetScalars (scalarName.c_str());
-  dminmax = fArray->GetRange ();
-
-
-  // Setting up slider parameters
-  horizontalSlider->setRange(dminmax[0], dminmax[1]);
-  // horizontalSlider->setTickInterval((dminmax[1] - dminmax[0])/100);
-  // horizontalSlider->setSingleStep((dminmax[1] - dminmax[0])/100);
-  horizontalSlider->setValue((dminmax[1] + dminmax[0])/2);
-  std::cout<<dminmax[1]<<" "<<dminmax[0]<<" "<<(dminmax[1] + dminmax[0])/2<<endl;
-  //setting initial value of TextLabel
-  QString str;
-  str.sprintf("%d", horizontalSlider->value());
-  label->setText(str);
+  connect(actionOpen, SIGNAL(triggered()), this, SLOT(OpenFile()));
 
   //Connecting slider with Slot to update IsoValue
   connect(horizontalSlider,SIGNAL(sliderReleased()),this,SLOT(SetIsoValue()));
@@ -161,14 +130,60 @@ GUI4::GUI4()
   renwin->Delete();
 
   QVTKInteractor *iren2=qVTK2->GetInteractor();
-  
+
   // add a renderer
   Ren2 = vtkRenderer::New();
-  qVTK2->GetRenderWindow()->AddRenderer(Ren2);
-  
+
   // Setting up Contour filter
   contours = vtkContourFilter::New();
   contours->UseScalarTreeOn();
+}
+
+GUI4::~GUI4()
+{
+  // Ren1->Delete();
+  Ren2->Delete();
+}
+
+void GUI4::OpenFile()
+{
+  fileName = QFileDialog::getOpenFileName(this, tr("Open Dataset"), tr("VTK Files (*.vtk)")).toStdString();
+  std::cout<<"We can open File here"<<" "<<fileName<<endl;
+
+  ureader->SetFileName(fileName.c_str());
+  ureader->ReadAllScalarsOn ();
+  std::cout<<"Setting filename done"<<endl;
+  // Setting up vtk reader and Contour filters
+  vtkUnstructuredGrid *uGrid;
+  uGrid = ureader->GetOutput();
+  uGrid->Update ();
+
+  // Setting up parameters for combobox
+  for(int i = 0; i < ureader->GetNumberOfScalarsInFile(); i++)
+    {
+      comboBox->addItem(ureader->GetScalarsNameInFile(i));
+      comboBox_2->addItem(ureader->GetScalarsNameInFile(i));
+    }
+  comboBox_2->setCurrentIndex(1);
+
+  vtkDataArray *fArray = NULL;
+  double *dminmax;
+  // This all sucks big time :(
+  std::string scalarName = comboBox->currentText().toStdString();
+  fArray = uGrid->GetPointData ()->GetScalars (scalarName.c_str());
+  dminmax = fArray->GetRange ();
+
+  // Setting up slider parameters
+  horizontalSlider->setRange(dminmax[0], dminmax[1]);
+  // horizontalSlider->setTickInterval((dminmax[1] - dminmax[0])/100);
+  // horizontalSlider->setSingleStep((dminmax[1] - dminmax[0])/100);
+  horizontalSlider->setValue((dminmax[1] + dminmax[0])/2);
+  std::cout<<dminmax[1]<<" "<<dminmax[0]<<" "<<(dminmax[1] + dminmax[0])/2<<endl;
+  //setting initial value of TextLabel
+  QString str;
+  str.sprintf("%d", horizontalSlider->value());
+  label->setText(str);
+
   contours->SetInput(ureader->GetOutput());
   contours->SetValue(0, (dminmax[1] + dminmax[0])/2);
   vtkPolyDataMapper *contMapper = vtkPolyDataMapper::New();
@@ -182,13 +197,8 @@ GUI4::GUI4()
   Ren2->SetBackground(1,1,1);
   contActor->Delete();
   contMapper->Delete();
-
-}
-
-GUI4::~GUI4()
-{
-  // Ren1->Delete();
-  Ren2->Delete();
+  qVTK2->GetRenderWindow()->AddRenderer(Ren2);
+  qVTK2->update();
 }
 
 void GUI4::DisableButton(int index)

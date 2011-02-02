@@ -33,6 +33,7 @@
 #include <qlabel.h>
 #include <qcombobox.h>
 #include <qpushbutton.h>
+#include <qfiledialog.h>
 
 class vtkRenderer;
 class vtkEventQtSlotConnect;
@@ -40,6 +41,7 @@ class vtkObject;
 class vtkCommand;
 class vtkContourFilter;
 class vtkActor;
+class vtkUnstructuredGridReader;
 
 class GUI4 : public QMainWindow, public Ui::GUI
 {
@@ -49,15 +51,19 @@ public:
   ~GUI4();
 
 public slots:
+  void OpenFile();
   void SetIsoValue();
   void SetTextLabel(int);
   void DisableButton(int);
   void UpdateSlider(int);
+
 protected:
   vtkRenderer* Ren1;
   vtkRenderer* Ren2;
   vtkContourFilter* contours;
   vtkActor *contActor;
+  std::string fileName;
+  vtkUnstructuredGridReader *ureader;
 };
 
 #endif // _GUI_h
