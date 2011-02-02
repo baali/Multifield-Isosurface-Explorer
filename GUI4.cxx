@@ -56,7 +56,6 @@
 #include "Util/vector.h"
 #include "Util/matrix.h"
 #include "Util/projective.h"
-#include "cll.h"
 
 #include "vtkTDxInteractorStyleCamera.h"
 #include "vtkTDxInteractorStyleSettings.h"
@@ -79,6 +78,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <fstream>
+#include "cll.h"
 
 GUI4::GUI4()
 {
@@ -151,11 +151,8 @@ void GUI4::OpenFile()
     return;
   ureader->SetFileName(fileName.c_str());
   ureader->ReadAllScalarsOn ();
-  std::cout<<"Setting filename done"<<endl;
-  // Setting up vtk reader and Contour filters
   uGrid = ureader->GetOutput();
   uGrid->Update ();
-
   // Setting up parameters for combobox
   for(int i = 0; i < ureader->GetNumberOfScalarsInFile(); i++)
     {
@@ -169,7 +166,9 @@ void GUI4::OpenFile()
   vtkDataArray *fArray = NULL;
   double *dminmax;
   // This all sucks big time :(
-  std::string scalarName = comboBox->currentText().toStdString();
+  std::cout<<"Setting filename done"<<endl;
+  // Setting up vtk reader and Contour filters
+  std::string scalarName = comboBox->itemText(0).toStdString();
   fArray = uGrid->GetPointData ()->GetScalars (scalarName.c_str());
   dminmax = fArray->GetRange ();
 
@@ -211,6 +210,41 @@ void GUI4::DisableButton(int index)
 
 void GUI4::UpdateSlider(int index)
 {
+  vtkDataArray *fArray = NULL;
+  double *dminmax;
+  // This all sucks big time :(
+  std::string scalarName = comboBox->currentText().toStdString();
+  fArray = uGrid->GetPointData ()->GetScalars (scalarName.c_str());
+  dminmax = fArray->GetRange ();
+
+  // Setting up slider parameters
+  horizontalSlider->setRange(dminmax[0], dminmax[1]);
+  // horizontalSlider->setTickInterval((dminmax[1] - dminmax[0])/100);
+  // horizontalSlider->setSingleStep((dminmax[1] - dminmax[0])/100);
+  horizontalSlider->setValue((dminmax[1] + dminmax[0])/2);
+  std::cout<<dminmax[1]<<" "<<dminmax[0]<<" "<<(dminmax[1] + dminmax[0])/2<<endl;
+  //setting initial value of TextLabel
+  QString str;
+  str.sprintf("%d", horizontalSlider->value());
+  label->setText(str);
+  //Updating the contour filter
+  ureader->SetScalarsName (scalarName.c_str());
+  contours->SetInput(ureader->GetOutput());
+  contours->SetValue(0, (dminmax[1] + dminmax[0])/2);
+  vtkPolyDataMapper *contMapper = vtkPolyDataMapper::New();
+  contMapper->SetInput(contours->GetOutput());
+  contMapper->SetScalarRange(0.0, 1.2);
+
+  // create an actor for the contours
+  contActor = vtkActor::New();
+  contActor->SetMapper(contMapper);
+  Ren2->Clear();
+  Ren2->AddViewProp(contActor);
+  Ren2->SetBackground(1,1,1);
+  contActor->Delete();
+  contMapper->Delete();
+  qVTK2->GetRenderWindow()->AddRenderer(Ren2);
+  qVTK2->update();
 
 }
 
@@ -300,6 +334,14 @@ void GUI4::CalculateKappa()
   int kappaFlag;
   float (*binS)[110] = new float[100000][110];
   float (*binsT)[110] = new float[100000][110];
+
+  //load and build our CL program from the file
+  CL example;
+  std::ifstream file("../part2.cl");
+  std::string source_str(
+			 std::istreambuf_iterator<char>(file),
+			 (std::istreambuf_iterator<char>()));
+  example.loadProgram(source_str);
   
   if (gArray != NULL)
     kappaFlag = 1;
@@ -324,14 +366,6 @@ void GUI4::CalculateKappa()
 
   gettimeofday(&tim, NULL);
   t1=tim.tv_sec+(tim.tv_usec/1000000.0);
-  
-  CL example;
-  //load and build our CL program from the file
-  std::ifstream file("../part2.cl");
-  std::string source_str(
-			 std::istreambuf_iterator<char>(file),
-			 (std::istreambuf_iterator<char>()));
-  example.loadProgram(source_str);
   
   gettimeofday(&tim, NULL);
   t2 = tim.tv_sec+(tim.tv_usec/1000000.0);

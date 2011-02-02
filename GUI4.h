@@ -34,6 +34,7 @@
 #include <qcombobox.h>
 #include <qpushbutton.h>
 #include <qfiledialog.h>
+#include "cll.h"
 
 class vtkRenderer;
 class vtkEventQtSlotConnect;
@@ -51,14 +52,15 @@ class GUI4 : public QMainWindow, public Ui::GUI
 {
   Q_OBJECT
 public:
+  GUI4();
+  ~GUI4();
   int BINS;
   float *bins;
   float *binst;
   float *minmax;
   float increment;
+  //CL example;
 
-  GUI4();
-  ~GUI4();
   void WriteKappa(char*);
 
 public slots:
