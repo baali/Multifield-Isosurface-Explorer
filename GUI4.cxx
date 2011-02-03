@@ -198,6 +198,13 @@ void GUI4::OpenFile()
   contMapper->Delete();
   qVTK2->GetRenderWindow()->AddRenderer(Ren2);
   qVTK2->update();
+
+  //Updating the Plot with blank.
+  if(view->GetScene()->GetNumberOfItems() != 0)
+    view->GetScene()->ClearItems();
+  qVTK1->SetRenderWindow(view->GetRenderWindow());
+  qVTK1->update();
+
 }
 
 void GUI4::DisableButton(int index)
@@ -227,7 +234,7 @@ void GUI4::UpdateSlider(int index)
   QString str;
   str.sprintf("%d", horizontalSlider->value());
   label->setText(str);
-  //Updating the contour filter
+  //Updating the contour filter based on comboBox
   ureader->SetScalarsName (scalarName.c_str());
   contours->SetInput(ureader->GetOutput());
   contours->SetValue(0, (dminmax[1] + dminmax[0])/2);
