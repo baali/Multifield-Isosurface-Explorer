@@ -200,11 +200,12 @@ void GUI4::OpenFile()
   qVTK2->update();
 
   //Updating the Plot with blank.
-  if(view->GetScene()->GetNumberOfItems() != 0)
-    view->GetScene()->ClearItems();
-  qVTK1->SetRenderWindow(view->GetRenderWindow());
-  qVTK1->update();
-
+  // if(view->GetScene()->GetNumberOfItems() != 0)
+  //   {
+  //     view->GetScene()->ClearItems();
+  //     qVTK1->SetRenderWindow(view->GetRenderWindow());
+  //     qVTK1->update();
+  //   }
 }
 
 void GUI4::DisableButton(int index)
@@ -310,6 +311,8 @@ void GUI4::WriteKappa (char *filename)
   std::cout << "done Reading file"<< endl;
   vtkTable* table = reader->GetOutput();
   chart = vtkChartXY::New();
+  if(view->GetScene()->GetNumberOfItems() != 0)
+    view->GetScene()->ClearItems();
   view->GetScene()->AddItem(chart);
   line = chart->AddPlot(vtkChart::LINE);
   line->SetInput(table, 0, 1);
