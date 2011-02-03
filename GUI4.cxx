@@ -311,8 +311,8 @@ void GUI4::WriteKappa (char *filename)
   std::cout << "done Reading file"<< endl;
   vtkTable* table = reader->GetOutput();
   chart = vtkChartXY::New();
-  // if(view->GetScene()->GetNumberOfItems() != 0)
-  //   view->GetScene()->ClearItems();
+  if(view->GetScene()->GetNumberOfItems() != 0)
+    view->GetScene()->ClearItems();
   view->GetScene()->AddItem(chart);
   line = chart->AddPlot(vtkChart::LINE);
   line->SetInput(table, 0, 1);
