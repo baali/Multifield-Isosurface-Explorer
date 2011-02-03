@@ -29,6 +29,15 @@
  http://www.trolltech.com/products/3rdparty/vtksupport.html
 =========================================================================*/
 
+/*
+Feature List
+* Set Axis names.
+* Set title of Chart.
+* Get MouseClick working for Charts.
+* If possible try threading for handing visualization and calculation part
+  separately.
+ */
+
 #include "GUI4.h"
 
 #include <QMenu>
