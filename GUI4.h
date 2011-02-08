@@ -34,6 +34,9 @@
 #include <qcombobox.h>
 #include <qpushbutton.h>
 #include <qfiledialog.h>
+#include "vtkChartXY.h"
+#include "vtkChartLegend.h"
+#include "vtkTooltipItem.h"
 #include "cll.h"
 
 class vtkRenderer;
@@ -45,8 +48,28 @@ class vtkActor;
 class vtkUnstructuredGridReader;
 class vtkUnstructuredGrid;
 class vtkContextView;
-class vtkChartXY;
 class vtkPlot;
+//class vtkChartXY;
+
+class VTK_CHARTS_EXPORT vtkNewChart: public vtkChartXY
+{
+ public:
+
+  vtkTypeMacro(vtkNewChart, vtkChartXY);
+  static vtkNewChart* New();
+void SetTooltipInfo(const vtkContextMouseEvent& mouse,
+                                const vtkVector2f &plotPos,
+                                int seriesIndex, vtkPlot* plot)
+  {
+    std::cout<<plotPos.X()<<" "<<plotPos.Y()<<std::endl;
+              
+	vtkChartXY::SetTooltipInfo(mouse, plotPos, seriesIndex, plot);
+  }
+protected:
+vtkNewChart(){
+	SetShowLegend(false);
+}
+};
 
 class GUI4 : public QMainWindow, public Ui::GUI
 {
@@ -62,7 +85,7 @@ public:
   //CL example;
 
   void WriteKappa(char*);
-
+      
 public slots:
   void OpenFile();
   void SetIsoValue();
@@ -70,6 +93,7 @@ public slots:
   void DisableButton(int);
   void UpdateSlider(int);
   void CalculateKappa();
+  void updateCoords(vtkObject*);
 
 protected:
   vtkRenderer* Ren1;
@@ -81,7 +105,9 @@ protected:
   vtkUnstructuredGrid *uGrid;
   vtkContextView *view;
   vtkChartXY *chart;
+  // NewChart *chartNew;
   vtkPlot *line;
+  vtkEventQtSlotConnect* Connections;
   //name more sensible
   /* CL* example; */
 };

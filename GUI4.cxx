@@ -61,6 +61,7 @@ Feature List
 #include "vtkByteSwap.h"
 #include "vtkCellArray.h"
 #include "vtkCellType.h"
+#include "vtkEventQtSlotConnect.h"
 
 #include "Util/vector.h"
 #include "Util/matrix.h"
@@ -69,6 +70,7 @@ Feature List
 #include "vtkTDxInteractorStyleCamera.h"
 #include "vtkTDxInteractorStyleSettings.h"
 #include "QVTKInteractor.h"
+#include "vtkChartXY.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkProperty.h>
@@ -79,21 +81,24 @@ Feature List
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
-#include <vtkChartXY.h>
 #include <vtkPlot.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
+#include "vtkObjectFactory.h"
 
 #include <stdio.h>
 #include <sys/time.h>
 #include <fstream>
 #include "cll.h"
 
+vtkStandardNewMacro(vtkNewChart);
 GUI4::GUI4()
 {
   this->setupUi(this);
   ureader = vtkUnstructuredGridReader::New();
   uGrid = vtkUnstructuredGrid::New();
+  chart = vtkNewChart::New();
+
   //Number of bins
   BINS = 100;
   bins = new float[BINS + 10];
@@ -143,12 +148,35 @@ GUI4::GUI4()
   // Setting up Contour filter
   contours = vtkContourFilter::New();
   contours->UseScalarTreeOn();
+  Connections = vtkEventQtSlotConnect::New();
+  Connections->Connect(qVTK1->GetRenderWindow()->GetInteractor(),
+		       vtkCommand::LeftButtonPressEvent,
+		       this,
+		       SLOT(updateCoords(vtkObject*)));
 }
 
 GUI4::~GUI4()
 {
   // Ren1->Delete();
   Ren2->Delete();
+}
+
+void GUI4::updateCoords(vtkObject* obj)
+{
+  // get interactor
+  vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
+  // get event position
+  int event_pos[2];
+  iren->GetEventPosition(event_pos);
+  // update label
+  // QString str;
+  // str = qVTK1->statusTip();
+  // str.sprintf("x=%d : y=%d", event_pos[0], event_pos[1]);
+  std::cout<<event_pos[0]<<" "<<event_pos[1]<<endl;
+  // std::cout<<chart->Tooltip->GetText()<<endl;
+  vtkNewChart* newchart = (vtkNewChart*)chart;
+  //std::cout<<newchart->GetTooltipInfo()<<endl;
+  // newchart->GetTooltipInfo();
 }
 
 void GUI4::OpenFile()
@@ -319,7 +347,6 @@ void GUI4::WriteKappa (char *filename)
   reader->Update();
   std::cout << "done Reading file"<< endl;
   vtkTable* table = reader->GetOutput();
-  chart = vtkChartXY::New();
   if(view->GetScene()->GetNumberOfItems() != 0)
     view->GetScene()->ClearItems();
   view->GetScene()->AddItem(chart);

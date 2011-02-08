@@ -40,6 +40,9 @@ class VTK_CHARTS_EXPORT vtkChartXY : public vtkChart
 public:
   vtkTypeMacro(vtkChartXY, vtkChart);
   virtual void PrintSelf(ostream &os, vtkIndent indent);
+  // Description:
+  // The tooltip item for the chart - can be used to display extra information.
+  vtkSmartPointer<vtkTooltipItem> Tooltip;
 
   // Description:
   // Creates a 2D Chart object.
@@ -143,7 +146,7 @@ public:
   virtual void SetTooltipInfo(const vtkContextMouseEvent &,
                               const vtkVector2f &,
                               int, vtkPlot*);
-  virtual vtkStdString GetTooltipInfo();
+  // virtual vtkStdString GetTooltipInfo();
 
 //BTX
   // Description:
@@ -174,6 +177,10 @@ public:
   // Mouse wheel event, positive delta indicates forward movement of the wheel.
   virtual bool MouseWheelEvent(const vtkContextMouseEvent &mouse, int delta);
 
+  // Description:
+  // Try to locate a point within the plots to display in a tooltip
+  bool LocatePointInPlots(const vtkContextMouseEvent &mouse);
+
 //ETX
 
 //BTX
@@ -181,9 +188,6 @@ protected:
   vtkChartXY();
   ~vtkChartXY();
 
-  // Description:
-  // The tooltip item for the chart - can be used to display extra information.
-  vtkSmartPointer<vtkTooltipItem> Tooltip;
 
   // Description:
   // Recalculate the necessary transforms.
@@ -268,10 +272,6 @@ private:
   // Description:
   // Figure out the spacing between the bar chart plots, and their offsets.
   void CalculateBarPlots();
-
-  // Description:
-  // Try to locate a point within the plots to display in a tooltip
-  bool LocatePointInPlots(const vtkContextMouseEvent &mouse);
 
   // Description:
   // Remove the plot from the plot corners list.

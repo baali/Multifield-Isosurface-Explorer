@@ -1212,31 +1212,31 @@ bool vtkChartXY::LocatePointInPlots(const vtkContextMouseEvent &mouse)
   return false;
 }
 
-vtkStdString vtkChartXY::GetTooltipInfo()
-{
-  // vtksys_ios::ostringstream ostr;
-  // vtkVector2f plotPos;
-  // vtkPlot* plot = vtkPlot::SafeDownCast(this->ChartPrivate->
-  // 					PlotCorners[i]->GetItem(j));
+// vtkStdString vtkChartXY::GetTooltipInfo()
+// {
+//   // vtksys_ios::ostringstream ostr;
+//   // vtkVector2f plotPos;
+//   // vtkPlot* plot = vtkPlot::SafeDownCast(this->ChartPrivate->
+//   // 					PlotCorners[i]->GetItem(j));
 
-  // int seriesIndex = plot->GetNearestPoint(position, tolerance, &plotPos);
+//   // int seriesIndex = plot->GetNearestPoint(position, tolerance, &plotPos);
 
-  // ostr.imbue(vtkstd::locale::classic());
-  // ostr.setf(ios::fixed, ios::floatfield);
-  // ostr << label << ": ";
-  // ostr.precision(ChartPrivate->axes[vtkAxis::BOTTOM]->GetPrecision());
-  // ostr << (this->ChartPrivate->axes[vtkAxis::BOTTOM]->GetLogScale()?
-  //   pow(double(10.0), double(plotPos.X())):
-  //   plotPos.X());
-  // ostr << ",  ";
-  // ostr.precision(ChartPrivate->axes[vtkAxis::LEFT]->GetPrecision());
-  // ostr << (this->ChartPrivate->axes[vtkAxis::LEFT]->GetLogScale()?
-  //   pow(double(10.0), double(plotPos.Y())):
-  //   plotPos.Y());
-  // this->Tooltip->SetText(ostr.str().c_str());
-  // return ostr.str();
-  return this->Tooltip->GetText();
-}
+//   // ostr.imbue(vtkstd::locale::classic());
+//   // ostr.setf(ios::fixed, ios::floatfield);
+//   // ostr << label << ": ";
+//   // ostr.precision(ChartPrivate->axes[vtkAxis::BOTTOM]->GetPrecision());
+//   // ostr << (this->ChartPrivate->axes[vtkAxis::BOTTOM]->GetLogScale()?
+//   //   pow(double(10.0), double(plotPos.X())):
+//   //   plotPos.X());
+//   // ostr << ",  ";
+//   // ostr.precision(ChartPrivate->axes[vtkAxis::LEFT]->GetPrecision());
+//   // ostr << (this->ChartPrivate->axes[vtkAxis::LEFT]->GetLogScale()?
+//   //   pow(double(10.0), double(plotPos.Y())):
+//   //   plotPos.Y());
+//   // this->Tooltip->SetText(ostr.str().c_str());
+//   // return ostr.str();
+//   return this->Tooltip->GetText();
+// }
 
 void vtkChartXY::SetTooltipInfo(const vtkContextMouseEvent& mouse,
                                 const vtkVector2f &plotPos,
@@ -1269,6 +1269,7 @@ void vtkChartXY::SetTooltipInfo(const vtkContextMouseEvent& mouse,
     pow(double(10.0), double(plotPos.Y())):
     plotPos.Y());
   this->Tooltip->SetText(ostr.str().c_str());
+  std::cout<<ostr.str()<<endl;
   this->Tooltip->SetPosition(mouse.ScreenPos[0]+2,
                              mouse.ScreenPos[1]+2);
 }
