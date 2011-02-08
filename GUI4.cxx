@@ -152,7 +152,7 @@ GUI4::GUI4()
   Connections->Connect(qVTK1->GetRenderWindow()->GetInteractor(),
 		       vtkCommand::LeftButtonPressEvent,
 		       this,
-		       SLOT(updateCoords(vtkObject*)));
+		       SLOT(updateCoords()));
 }
 
 GUI4::~GUI4()
@@ -161,30 +161,17 @@ GUI4::~GUI4()
   Ren2->Delete();
 }
 
-void GUI4::updateCoords(vtkObject* obj)
+void GUI4::updateCoords()
 {
-  // get interactor
-  vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
-  // get event position
-  int event_pos[2];
-  iren->GetEventPosition(event_pos);
-  // update label
-  // QString str;
-  // str = qVTK1->statusTip();
-  // str.sprintf("x=%d : y=%d", event_pos[0], event_pos[1]);
-  // std::cout<<event_pos[0]<<" "<<event_pos[1]<<endl;
-  // std::cout<<chart->Tooltip->GetText()<<endl;
   vtkNewChart* newchart = (vtkNewChart*)chart;
-  //std::cout<<newchart->GetTooltipInfo()<<endl;
-  // newchart->GetTooltipInfo();
   std::cout<<newchart->chartPos.X()<<" "<<newchart->chartPos.Y()<<endl;
+  contours->SetValue(0, newchart->chartPos.X());
+  qVTK2->update();
 }
 
 void GUI4::OpenFile()
 {
   fileName = QFileDialog::getOpenFileName(this, tr("Open Dataset"), tr("VTK Files (*.vtk)")).toStdString();
-  std::cout<<"We can open File here"<<" "<<fileName<<endl;
-
   if(fileName == "")
     return;
   ureader->SetFileName(fileName.c_str());

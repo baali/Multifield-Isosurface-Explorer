@@ -94,7 +94,7 @@ public slots:
   void DisableButton(int);
   void UpdateSlider(int);
   void CalculateKappa();
-  void updateCoords(vtkObject*);
+  void updateCoords();
 
 protected:
   vtkRenderer* Ren1;
