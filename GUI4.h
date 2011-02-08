@@ -54,21 +54,22 @@ class vtkPlot;
 class VTK_CHARTS_EXPORT vtkNewChart: public vtkChartXY
 {
  public:
-
+  vtkVector2f chartPos;
   vtkTypeMacro(vtkNewChart, vtkChartXY);
   static vtkNewChart* New();
-void SetTooltipInfo(const vtkContextMouseEvent& mouse,
-                                const vtkVector2f &plotPos,
-                                int seriesIndex, vtkPlot* plot)
+  void SetTooltipInfo(const vtkContextMouseEvent& mouse,
+		      const vtkVector2f &plotPos,
+		      int seriesIndex, vtkPlot* plot)
   {
-    std::cout<<plotPos.X()<<" "<<plotPos.Y()<<std::endl;
-              
-	vtkChartXY::SetTooltipInfo(mouse, plotPos, seriesIndex, plot);
+    /* chartPos.X = plotPos.X(); */
+    /* chartPos.Y = plotPos.Y(); */
+    chartPos = vtkVector2f(plotPos.X(), plotPos.Y());
+    /* std::cout<<plotPos.X()<<" "<<plotPos.Y()<<std::endl;     */
+    vtkChartXY::SetTooltipInfo(mouse, plotPos, seriesIndex, plot);
   }
-protected:
-vtkNewChart(){
-	SetShowLegend(false);
-}
+ protected:
+  vtkNewChart(){
+  }
 };
 
 class GUI4 : public QMainWindow, public Ui::GUI

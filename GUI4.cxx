@@ -172,11 +172,12 @@ void GUI4::updateCoords(vtkObject* obj)
   // QString str;
   // str = qVTK1->statusTip();
   // str.sprintf("x=%d : y=%d", event_pos[0], event_pos[1]);
-  std::cout<<event_pos[0]<<" "<<event_pos[1]<<endl;
+  // std::cout<<event_pos[0]<<" "<<event_pos[1]<<endl;
   // std::cout<<chart->Tooltip->GetText()<<endl;
   vtkNewChart* newchart = (vtkNewChart*)chart;
   //std::cout<<newchart->GetTooltipInfo()<<endl;
   // newchart->GetTooltipInfo();
+  std::cout<<newchart->chartPos.X()<<" "<<newchart->chartPos.Y()<<endl;
 }
 
 void GUI4::OpenFile()
