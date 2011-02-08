@@ -1,0 +1,8 @@
+* Dependencies for this thing:
+** For charts we need latest VTK, I got git repo, and installed version number shows 5.7
+** OpenCl headers and dirvers.
+** Added/edited CMakeCache.txt in build dir to locate VTK-5.7 manually.
+   Fix it to locate it automatically.
+** There are issues with 5.6 and 5.7 itself, in later version its qapplication.h while 
+   for 5.7 its QVTKApplication.h. And other similar naming convention issues.
+** Try qwt, lets see....
