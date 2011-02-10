@@ -85,6 +85,7 @@ Feature List
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
 #include "vtkObjectFactory.h"
+#include <vtkAxis.h>
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -357,6 +358,18 @@ void GUI4::WriteKappa (char *filename)
   line->SetInput(table, 0, 1);
   line->SetColor(255, 0, 0, 255);
   line->SetWidth(2.0);
+  // Setting Axis labels(Figure out how to get greek symbols)
+  // X-Axis
+  vtkAxis* axis = chart->GetAxis(1);
+  axis->SetTitle("isovalues ("+
+		 comboBox->currentText().toStdString()+")");
+  axis->Delete();    
+  // Y-Axis
+  axis = chart->GetAxis(0);
+  axis->SetTitle("Psi("+comboBox->currentText().toStdString()+
+		 ",{"+comboBox->currentText().toStdString()+
+		 ","+comboBox_2->currentText().toStdString()+
+		 "},r)");
   view->SetInteractor(qVTK1->GetInteractor());
   qVTK1->SetRenderWindow(view->GetRenderWindow());
   qVTK1->update();
