@@ -111,8 +111,8 @@ GUI4::GUI4()
   connect(actionOpen, SIGNAL(triggered()), this, SLOT(OpenFile()));
   //Connecting slider with Slot to update IsoValue
   connect(horizontalSlider,SIGNAL(sliderReleased()),this,SLOT(SetIsoValue()));
-  //Updating TextLabel
-  connect(horizontalSlider,SIGNAL(valueChanged(int)), this, SLOT(SetTextLabel(int)));
+  //Updating lineEdit
+  connect(horizontalSlider,SIGNAL(valueChanged(int)), this, SLOT(SetLineEdit(int)));
 
   //Connecting Combobox selection with Combobox_2
   connect(comboBox,SIGNAL(currentIndexChanged(int)), this, SLOT(DisableButton(int)));
@@ -123,6 +123,9 @@ GUI4::GUI4()
 
   //Connecting calculate button with OpenCL code
   connect(pushButton, SIGNAL(clicked()), this, SLOT(CalculateKappa()));
+
+  //Connecting lineEdit text change with slider and isosurface
+  connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(UpdateLineEdit()));
 
   // create a window to make it stereo capable and give it to QVTKWidget
   vtkRenderWindow* renwin = vtkRenderWindow::New();
@@ -152,7 +155,7 @@ GUI4::GUI4()
   Connections->Connect(qVTK1->GetRenderWindow()->GetInteractor(),
 		       vtkCommand::LeftButtonPressEvent,
 		       this,
-		       SLOT(updateCoords()));
+		       SLOT(UpdateCoords()));
 }
 
 GUI4::~GUI4()
@@ -161,7 +164,7 @@ GUI4::~GUI4()
   Ren2->Delete();
 }
 
-void GUI4::updateCoords()
+void GUI4::UpdateCoords()
 {
   vtkNewChart* newchart = (vtkNewChart*)chart;
   std::cout<<newchart->chartPos.X()<<" "<<newchart->chartPos.Y()<<endl;
@@ -169,7 +172,7 @@ void GUI4::updateCoords()
   horizontalSlider->setValue(newchart->chartPos.X());
   QString str;
   str.sprintf("%f", newchart->chartPos.X());
-  label->setText(str);
+  lineEdit->setText(str);
   qVTK2->update();
 }
 
@@ -210,7 +213,7 @@ void GUI4::OpenFile()
   //setting initial value of TextLabel
   QString str;
   str.sprintf("%d", horizontalSlider->value());
-  label->setText(str);
+  lineEdit->setText(str);
 
   contours->SetInput(ureader->GetOutput());
   contours->SetValue(0, (dminmax[1] + dminmax[0])/2);
@@ -263,7 +266,7 @@ void GUI4::UpdateSlider(int index)
   //setting initial value of TextLabel
   QString str;
   str.sprintf("%d", horizontalSlider->value());
-  label->setText(str);
+  lineEdit->setText(str);
   //Updating the contour filter based on comboBox
   ureader->SetScalarsName (scalarName.c_str());
   contours->SetInput(ureader->GetOutput());
@@ -282,14 +285,22 @@ void GUI4::UpdateSlider(int index)
   contMapper->Delete();
   qVTK2->GetRenderWindow()->AddRenderer(Ren2);
   qVTK2->update();
-
 }
 
-void GUI4::SetTextLabel(int value)
+void GUI4::UpdateLineEdit()
+{
+  QString str;
+  str = lineEdit->text();
+  contours->SetValue(0, str.toFloat());
+  horizontalSlider->setValue(str.toFloat());
+  qVTK2->update();
+}
+
+void GUI4::SetLineEdit(int value)
 {
   QString str;
   str.sprintf("%d", value);
-  label->setText(str);
+  lineEdit->setText(str);
 }
 
 void GUI4::SetIsoValue()

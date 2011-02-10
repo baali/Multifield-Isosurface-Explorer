@@ -90,11 +90,12 @@ public:
 public slots:
   void OpenFile();
   void SetIsoValue();
-  void SetTextLabel(int);
+  void SetLineEdit(int);
   void DisableButton(int);
   void UpdateSlider(int);
   void CalculateKappa();
-  void updateCoords();
+  void UpdateCoords();
+  void UpdateLineEdit();
 
 protected:
   vtkRenderer* Ren1;
