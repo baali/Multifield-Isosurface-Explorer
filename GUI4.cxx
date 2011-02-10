@@ -294,6 +294,8 @@ void GUI4::UpdateLineEdit()
   str = lineEdit->text();
   contours->SetValue(0, str.toFloat());
   horizontalSlider->setValue(str.toFloat());
+  // this updating of slider changes value in line edit too :P
+  lineEdit->SetText(str);
   qVTK2->update();
 }
 
