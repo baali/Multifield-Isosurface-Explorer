@@ -166,6 +166,10 @@ void GUI4::updateCoords()
   vtkNewChart* newchart = (vtkNewChart*)chart;
   std::cout<<newchart->chartPos.X()<<" "<<newchart->chartPos.Y()<<endl;
   contours->SetValue(0, newchart->chartPos.X());
+  horizontalSlider->setValue(newchart->chartPos.X());
+  QString str;
+  str.sprintf("%f", newchart->chartPos.X());
+  label->setText(str);
   qVTK2->update();
 }
 
