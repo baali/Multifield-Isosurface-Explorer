@@ -286,6 +286,11 @@ void GUI4::UpdateSlider(int index)
   contMapper->Delete();
   qVTK2->GetRenderWindow()->AddRenderer(Ren2);
   qVTK2->update();
+  if(chart->GetNumberOfPlots() != 0)
+    {
+      chart->ClearPlots();       
+      qVTK1->update();
+    }
 }
 
 void GUI4::UpdateLineEdit()
@@ -295,7 +300,7 @@ void GUI4::UpdateLineEdit()
   contours->SetValue(0, str.toFloat());
   horizontalSlider->setValue(str.toFloat());
   // this updating of slider changes value in line edit too :P
-  lineEdit->SetText(str);
+  lineEdit->setText(str);
   qVTK2->update();
 }
 
@@ -353,8 +358,11 @@ void GUI4::WriteKappa (char *filename)
   reader->Update();
   std::cout << "done Reading file"<< endl;
   vtkTable* table = reader->GetOutput();
-  if(view->GetScene()->GetNumberOfItems() != 0)
-    view->GetScene()->ClearItems();
+  if(chart->GetNumberOfPlots() != 0)
+    {
+      chart->ClearPlots();       
+      qVTK1->update();
+    }
   view->GetScene()->AddItem(chart);
   line = chart->AddPlot(vtkChart::LINE);
   line->SetInput(table, 0, 1);
@@ -363,12 +371,14 @@ void GUI4::WriteKappa (char *filename)
   // Setting Axis labels(Figure out how to get greek symbols)
   // X-Axis
   vtkAxis* axis = chart->GetAxis(1);
+  axis->SetNotation(1);
   axis->SetTitle("isovalues ("+
 		 comboBox->currentText().toStdString()+")");
   axis->Delete();    
   // Y-Axis
   axis = chart->GetAxis(0);
-  axis->SetTitle("Psi("+comboBox->currentText().toStdString()+
+  axis->SetNotation(1);
+  axis->SetTitle("\psi("+comboBox->currentText().toStdString()+
 		 ",{"+comboBox->currentText().toStdString()+
 		 ","+comboBox_2->currentText().toStdString()+
 		 "},r)");
