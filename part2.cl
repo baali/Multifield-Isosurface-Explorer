@@ -139,8 +139,16 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
   float prevF = hs[0];
   int index = (hs[0] - minmax[0]) / increment;
 
-  float currentF = minmax[0] + increment * (float) index;
+  /* volume[*vol_index] = index; */
+  /* *vol_index += 1; */
+  /* volume[*vol_index] = minmax[0]; */
+  /* *vol_index += 1; */
+  
+  float currentF = minmax[0] + increment * index;
   currentF += increment;
+
+  /* volume[*vol_index] = currentF; */
+  /* *vol_index += 1; */
 
   float4 prevAppex[2];
   float4 currentAppex[2];
@@ -149,142 +157,191 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
   float finalVol;
   int incFlag = 0;
   int mark = 0;
+  /* volume[*vol_index] = increment; */
+  /* *vol_index += 1; */
   // Removed = from the comparison, I guess float equivalence cant be used on GPU.
-  while (currentF < prevF)
+  while (currentF <= prevF)
     {
       currentF += increment;
       index += 1;
     }
-    prevVertices[0] = v[0];
-    prevVertexCount = 1;
-    prevCount = 8;
-    int flag = 0; // for checking the use of prevAppex for the first time.
-    for (int m = 1; m < 4; ++m)
-      {
-	while (currentF < hs[m])
-	  {	    
-	    currentVertexCount = 0;
-	    for (int i = 3; i > 0; i--)
-	      {
-		for (int j = 0; j < i; ++j)
-		  {
-		    if (hs[j] <= currentF && hs[i] >= currentF)
-		      {
-			float t = (currentF - hs[j]) / (hs[i] - hs[j]);
-			float x = (1 - t) * (v[j].x) + t * (v[i].x);
-			float y = (1 - t) * (v[j].y) + t * (v[i].y);
-			float z = (1 - t) * (v[j].z) + t * (v[i].z);
-			currentVertices[currentVertexCount] =
-			  (float4)(x, y, z, 1);
-			currentVertexCount++;
-		      }
-		  }
-	      }
-	    if (currentVertexCount >= 3)
-	      {
-		float4 n;
-		n = cross((currentVertices[1] - currentVertices[0]), (currentVertices[2] - currentVertices[0]));
-		currentCount = 0;
-		for ( int signCount = 0; signCount < 4; signCount++)
-		  {
-		    float sign = dot(n, (v[signCount] - currentVertices[0]));
-		    currentCount = currentCount << 1;
-		    if (sign < 0)
-		      currentCount += 0;
-		    else
-		      currentCount += 1;
- 		  }
-
-		if (currentCount == 7 || currentCount == 8)
+  /* volume[*vol_index] = currentF; */
+  /* *vol_index += 1; */
+  
+  prevVertices[0] = v[0];
+  prevVertexCount = 1;
+  prevCount = 8;
+  int flag = 0; // for checking the use of prevAppex for the first time.
+  for (int m = 1; m < 4; ++m)
+    {
+      while (currentF < hs[m])
+	{
+	  currentVertexCount = 0;
+	  for (int i = 3; i > 0; i--)
+	    {
+	      /* volume[*vol_index] = hs[i];		       */
+	      /* *vol_index += 1; */
+	      for (int j = 0; j < i; ++j)
+		{
+		  // This comparison is not consistent with CPU and GPU
+		  // if (hs[j] <= currentF && hs[i] >= currentF)
+		  if (hs[j] <= currentF && hs[i] >= currentF)
+		    {
+		      int flag_repeat = 0;
+		      int4 compare;
+		      float t = (currentF - hs[j]) / (hs[i] - hs[j]);
+		      /* volume[*vol_index] = t;		       */
+		      /* *vol_index += 1; */
+		      float x = (1 - t) * (v[j].x) + t * (v[i].x);
+		      float y = (1 - t) * (v[j].y) + t * (v[i].y);
+		      float z = (1 - t) * (v[j].z) + t * (v[i].z);
+		      /* volume[*vol_index] = (currentVertices[currentVertexCount-1] */
+		      /* 			    == (float4)(x, y, z, 1)); */
+		      /* *vol_index += 1; */
+		      // Removing this vertex from top of prevVertex
+		      // Do a check on if values pushed on prevVertex have same
+		      // function values.
+		      compare = isequal(prevVertices[prevVertexCount-1],
+					(float4)(x, y, z, 1));
+		      if (compare.x && compare.y && compare.z)
+			{
+			  prevVertexCount -= 1;
+			}
+		      // to make sure there are no repeated vertices
+		      for (int p = 0; p < currentVertexCount; p++)
+			{
+			  compare = isequal(currentVertices[p],
+						(float4)(x, y, z, 1));
+			  if (compare.x && compare.y && compare.z)
+			    {
+			      flag_repeat = 1;
+			      break;
+			    }
+			}
+		      if (flag_repeat == 0)
+			{
+			  /* volume[*vol_index] = t; */
+			  /* *vol_index += 1; */
+			  currentVertices[currentVertexCount] =
+			    (float4)(x, y, z, 1);
+			  currentVertexCount++;
+			}
+		    }
+		}
+	    }
+	  if (currentVertexCount >= 3)
+	    {
+	      float4 n;
+	      n = cross((currentVertices[1] - currentVertices[0]), (currentVertices[2] - currentVertices[0]));
+	      currentCount = 0;
+	      for ( int signCount = 0; signCount < 4; signCount++)
+		{
+		  float sign = dot(n, (v[signCount] - currentVertices[0]));
+		  currentCount = currentCount << 1;
+		  if (sign < 0)
+		    currentCount += 0;
+		  else
+		    currentCount += 1;
+		}
+	      
+	      if (currentCount == 7 || currentCount == 8)
+		currentAppex[0] = v[0];
+	      else if (currentCount == 11 || currentCount == 4)
+		currentAppex[0] = v[1];
+	      else if (currentCount == 13 || currentCount == 2)
+		currentAppex[0] = v[2];
+	      else if (currentCount == 14 || currentCount == 1)
+		currentAppex[0] = v[3];
+	      else if(currentCount == 3 || currentCount == 12)
+		{
 		  currentAppex[0] = v[0];
-		else if (currentCount == 11 || currentCount == 4)
-		  currentAppex[0] = v[1];
-		else if (currentCount == 13 || currentCount == 2)
-		  currentAppex[0] = v[2];
-		else if (currentCount == 14 || currentCount == 1)
-		  currentAppex[0] = v[3];
-		else if(currentCount == 3 || currentCount == 12)
-		  {
-		    currentAppex[0] = v[0];
+		  currentAppex[1] = v[1];
+		}
+	      else if(currentCount == 10 || currentCount == 5)
+		{
+		  currentAppex[0] = v[0];
+		  currentAppex[1] = v[2];
+		}
+	      else if(currentCount == 6 || currentCount == 9)
+		{
+		  currentAppex[0] = v[0];
+		  currentAppex[1] = v[3];
+		}		
+	    }
+	  
+	  if (currentVertexCount == 3 || prevVertexCount == 3)
+	    {
+	      if(prevVertexCount == 1)
+		{
+		  finalVol = fabs(dot((currentVertices[0] - prevVertices[0]), cross((currentVertices[1] - prevVertices[0]), (currentVertices[2] - prevVertices[0]))))/6;
+		  // if (index == 69) cases[*vol_index] = 1;
+		}
+	      
+	      else if(currentVertexCount == 1)
+		{
+		  finalVol = fabs(dot((prevVertices[0] - currentVertices[0]), cross((prevVertices[1] - currentVertices[0]), (prevVertices[2] - currentVertices[0]))))/6;
+		  // if (index == 69) cases[*vol_index] = 2;
+		}
+	      
+	      else if(prevVertexCount == 2)
+		{		    
+		  mark = 1;
+		  float vol = fabs(dot((currentVertices[0] - currentAppex[0]), cross((currentVertices[1] - currentAppex[0]), (currentVertices[2] - currentAppex[0]))))/6;
+		  finalVol = totVolume - vol;
+		  // if (index == 69) cases[*vol_index] = 3;
+		  }
+	      
+	      else if(currentVertexCount == 2)
+		{		    
+		  mark = 1;
+		  float vol = fabs(dot((prevVertices[0] - prevAppex[0]), cross((prevVertices[1] - prevAppex[0]), (prevVertices[2] - prevAppex[0]))))/6;
+		  finalVol = totVolume - vol;
+		  // if (index == 69) cases[*vol_index] = 4;
+		}
+	      
+	      else if (currentCount == prevCount && prevVertexCount == currentVertexCount)
+		{
+		  float vol1 = fabs(dot((currentVertices[0] - prevVertices[1]), cross((currentVertices[1] - prevVertices[1]), (currentVertices[2] - prevVertices[1]))))/6;
+		  float vol2 = fabs(dot((currentVertices[0] - prevVertices[1]), cross((prevVertices[0] - prevVertices[1]), (currentVertices[2] - prevVertices[1]))))/6;
+		  float vol3 = fabs(dot((currentVertices[2] - prevVertices[0]), cross((prevVertices[0] - prevVertices[1]), (prevVertices[2] - prevVertices[1]))))/6;
+		  
+		  finalVol = vol1 + vol2 + vol3;
+		  // if (index == 69) cases[*vol_index] = 5;
+		}
+	      
+	      else if(currentVertexCount == prevVertexCount && currentCount != prevCount)
+		{
+		  if (flag == 0)
+		    {flag = 1;}
+		  
+		  float vol1 = fabs(dot((currentVertices[0] - prevVertices[1]), cross((currentVertices[1] - prevVertices[1]), (currentVertices[2] - prevVertices[1]))))/6;
+		  float vol2 = fabs(dot((currentVertices[0] - prevVertices[1]), cross((prevVertices[0] - prevVertices[1]), (currentVertices[2] - prevVertices[1]))))/6;
+		  float vol3 = fabs(dot((currentVertices[2] - prevVertices[0]), cross((prevVertices[0] - prevVertices[1]), (prevVertices[2] - prevVertices[1]))))/6;
+		  finalVol = vol1 + vol2 + vol3;
+		  // finalVol = 0.5;
+		  // if (index == 69) cases[*vol_index] = 6;
+		}
+	      
+	      else if(currentVertexCount == 4)
+		{
+		  mark = 1;
+		  currentAppex[0] = prevAppex[0];
+		  int x = prevCount ^ currentCount;
+		  if (x == 1)
+		    currentAppex[1] = v[0];
+		  else if (x == 2)
 		    currentAppex[1] = v[1];
-		  }
-		else if(currentCount == 10 || currentCount == 5)
-		  {
-		    currentAppex[0] = v[0];
+		  else if (x == 4)
 		    currentAppex[1] = v[2];
-		  }
-		else if(currentCount == 6 || currentCount == 9)
-		  {
-		    currentAppex[0] = v[0];
+		  else if (x == 8)
 		    currentAppex[1] = v[3];
-		  }		
-	      }
-
-	    if (currentVertexCount == 3 || prevVertexCount == 3)
-	      {
-		if(prevVertexCount == 1)
-		  {
-		    finalVol = fabs(dot((currentVertices[0] - prevVertices[0]), cross((currentVertices[1] - prevVertices[0]), (currentVertices[2] - prevVertices[0]))))/6;
-		  }
-
-		else if(currentVertexCount == 1)
-		  {
-		    finalVol = fabs(dot((prevVertices[0] - currentVertices[0]),cross((prevVertices[1] - currentVertices[0]), (prevVertices[2] - currentVertices[0]))))/6;
-		  }
-
-		else if(prevVertexCount == 2)
-		  {		    
-		    mark = 1;
-		    float vol = fabs(dot((currentVertices[0] - currentAppex[0]), cross((currentVertices[1] - currentAppex[0]), (currentVertices[2] - currentAppex[0]))))/6;
-		    finalVol = totVolume - vol;
-		  }
-
-		else if(currentVertexCount == 2)
-		  {		    
-		    mark = 1;
-		    float vol = fabs(dot((prevVertices[0] - prevAppex[0]), cross((prevVertices[1] - prevAppex[0]), (prevVertices[2] - prevAppex[0]))))/6;
-		    finalVol = totVolume - vol;
-		  }
-
-		else if (currentCount == prevCount && prevVertexCount == currentVertexCount)
-		  {
-		    float vol1 = fabs(dot((currentVertices[0] - prevVertices[1]), cross((currentVertices[1] - prevVertices[1]), (currentVertices[2] - prevVertices[1]))))/6;
-		    float vol2 = fabs(dot((currentVertices[0] - prevVertices[1]), cross((prevVertices[0] - prevVertices[1]), (currentVertices[2] - prevVertices[1]))))/6;
-		    float vol3 = fabs(dot((currentVertices[2] - prevVertices[0]), cross((prevVertices[0] - prevVertices[1]), (prevVertices[2] - prevVertices[1]))))/6;
-
-		    finalVol = vol1 + vol2 + vol3;
-		  }
-
-		else if(currentVertexCount == prevVertexCount && currentCount != prevCount)
-		  {
-		    if (flag == 0)
-		      flag = 1;
-
-		    float vol1 = fabs(dot((currentVertices[0] - prevVertices[1]), cross((currentVertices[1] - prevVertices[1]), (currentVertices[2] - prevVertices[1]))))/6;
-		    float vol2 = fabs(dot((currentVertices[0] - prevVertices[1]), cross((prevVertices[0] - prevVertices[1]), (currentVertices[2] - prevVertices[1]))))/6;
-		    float vol3 = fabs(dot((currentVertices[2] - prevVertices[0]), cross((prevVertices[0] - prevVertices[1]), (prevVertices[2] - prevVertices[1]))))/6;
-		    finalVol = vol1 + vol2 + vol3;
-		  }
-
-		else if(currentVertexCount == 4)
-		  {
-		    mark = 1;
-		    currentAppex[0] = prevAppex[0];
-		    int x = prevCount ^ currentCount;
-		    if (x == 1)
-		      currentAppex[1] = v[0];
-		    else if (x == 2)
-		      currentAppex[1] = v[1];
-		    else if (x == 4)
-		      currentAppex[1] = v[2];
-		    else if (x == 8)
-		      currentAppex[1] = v[3];
 		    
 		    float volP1 = fabs(dot((currentVertices[0] - currentAppex[0]), cross((currentVertices[1] - currentAppex[0]), (currentVertices[2] - currentAppex[0]))))/6;
 		    float volP2 = fabs(dot((currentVertices[0] - currentAppex[0]), cross((currentVertices[2] - currentAppex[0]), (currentVertices[3] - currentAppex[0]))))/6;
 		    float volP3 = fabs(dot((currentVertices[0] - currentAppex[1]), cross((currentAppex[0] - currentAppex[1]), (currentVertices[3] - currentAppex[1]))))/6;
 		    float volT = fabs(dot((prevVertices[0] - prevAppex[0]), cross((prevVertices[1] - prevAppex[0]), (prevVertices[2] - prevAppex[0]))))/6;
 		    finalVol = (volP1 + volP2 + volP3 - volT);
+		    // if (index == 69) cases[*vol_index] = 7;
 		  }
 		
 		else if(prevVertexCount == 4)
@@ -305,6 +362,7 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 		    float volP3 = fabs(dot((prevVertices[0] - prevAppex[1]), cross((prevAppex[0] - prevAppex[1]), (prevVertices[3] - prevAppex[1]))))/6;
 		    float volT = fabs(dot((currentVertices[0] - currentAppex[0]), cross((currentVertices[1] - currentAppex[0]), (currentVertices[2] - currentAppex[0]))))/6;
 		    finalVol = (volP1 + volP2 + volP3 - volT);
+		    // if (index == 69) cases[*vol_index] = 8;
 		  }
 		
 		else if(prevVertexCount == 5)
@@ -315,14 +373,16 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 			float volP1 = fabs(dot((prevVertices[3] - currentAppex[0]), cross((prevVertices[2] - currentAppex[0]), (prevVertices[4] - currentAppex[0]))))/6;
 			float volP2 = fabs(dot((prevVertices[0] - currentAppex[0]), cross((prevVertices[1] - currentAppex[0]), (prevVertices[3] - currentAppex[0]))))/6;
 			float volP3 = fabs(dot((prevVertices[0] - currentAppex[0]), cross((prevVertices[2] - currentAppex[0]), (prevVertices[3] - currentAppex[0]))))/6;
-			finalVol = volP1 + volP2 + volP3 - volT;			
+			finalVol = volP1 + volP2 + volP3 - volT;
+		        // if (index == 69) cases[*vol_index] = 9;
 			incFlag = 0;
 		      }
 		    else if (incFlag == 2)
 		      {		
 			float volT1 = fabs(dot((prevVertices[0] - prevAppex[0]), cross((prevVertices[1] - prevAppex[0]), (prevVertices[2] - prevAppex[0]))))/6;
 			float volT2 = fabs(dot((currentVertices[0] - currentAppex[0]), cross((currentVertices[1] - currentAppex[0]), (currentVertices[2] - currentAppex[0]))))/6;
-			finalVol = totVolume - volT1 - volT2;			
+			finalVol = totVolume - volT1 - volT2;
+		        // if (index == 69) cases[*vol_index] = 10;
 			incFlag = 0;
 		      }
 		  }
@@ -363,6 +423,7 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 		    float volP2 = fabs(dot((prevVertices[0] - currentAppex[1]), cross((prevVertices[1] - currentAppex[1]),(prevVertices[2] - currentAppex[1]))))/6;
 		    float volP3 = fabs(dot((prevVertices[0] - currentAppex[1]), cross((prevVertices[1] - currentAppex[1]),(prevVertices[3] - currentAppex[1]))))/6;
 		    finalVol = (volP1 + volP2 + volP3);
+		    // if (index == 69) cases[*vol_index] = 11;
 		  }
 
 		else if (prevVertexCount == 1)
@@ -397,6 +458,7 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 		    float volP2 = fabs(dot((currentVertices[0] - prevAppex[1]), cross((currentVertices[1] - prevAppex[1]), (currentVertices[2] - prevAppex[1]))))/6;
 		    float volP3 = fabs(dot((currentVertices[0] - prevAppex[1]), cross((currentVertices[1] - prevAppex[1]), (currentVertices[3] - prevAppex[1]))))/6;
 		    finalVol = (volP1 + volP2 + volP3);
+		    // if (index == 69) cases[*vol_index] = 12;
 		  }
 		
 		else if(currentVertexCount == 2)
@@ -413,6 +475,7 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 		    float volP2 = fabs(dot((currentVertices[0] - prevVertices[0]), cross((currentVertices[1] - prevVertices[0]), (currentVertices[3] - prevVertices[0]))))/6;
 		    float volP3 = fabs(dot((currentVertices[0] - prevVertices[0]), cross((currentVertices[2] - prevVertices[0]), (currentVertices[3] - prevVertices[0]))))/6;
 		    finalVol = (volP1 + volP2 + volP3);
+		    // if (index == 69) cases[*vol_index] = 13;
 		  }
 
 		else if (prevVertexCount == currentVertexCount )
@@ -424,6 +487,7 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 			float volP2 = fabs(dot((currentVertices[0] - prevAppex[0]), cross((currentVertices[1] - prevAppex[0]), (currentVertices[3] - prevAppex[0]))))/6;
 			float volP3 = fabs(dot((currentVertices[0] - prevAppex[0]), cross((currentVertices[2] - prevAppex[0]), (currentVertices[3] - prevAppex[0]))))/6;
 			finalVol = volP1 + volP2 + volP3 - volT;			
+		        // if (index == 69) cases[*vol_index] = 14; 
 			incFlag = 0;
 		      }
 		    else
@@ -438,10 +502,16 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 			float vol2 = volP1 + volP2 + volP3;
 			
 			finalVol = (vol2 > vol1) ? (vol2 - vol1) : (vol1 - vol2);
+		        // if (index == 69) cases[*vol_index] = 15;
 		      }
 		  }		
 	      }
 
+	    // if (index == 69)
+	      {
+	        // volume[*vol_index] = finalVol;
+		// *vol_index += 1;
+	      }
 	    bins[index] += finalVol * kappa;
 	    binst[index] += finalVol;
 	    prevF = currentF;
@@ -466,6 +536,7 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
       {
 	mark = 1;
 	finalVol = fabs(dot((prevVertices[0] - v[3]), cross((prevVertices[1] - v[3]), (prevVertices[2] - v[3]))))/6;
+        // if (index == 69) cases[*vol_index] = 16; 
       }
 
     else if (prevVertexCount == 4)
@@ -473,6 +544,7 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 	if (flag == 0)
 	  {
 	    finalVol = fabs(dot((prevVertices[0] - v[3]), cross((prevVertices[1] - v[3]), (prevVertices[2] - v[3]))))/6;
+            // if (index == 69) cases[*vol_index] = 17; 
 	  }
 	else
 	  {
@@ -480,6 +552,7 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 	    float volP2 = fabs(dot((prevVertices[0] - currentAppex[0]), cross((prevVertices[1] - currentAppex[0]), (prevVertices[2] - currentAppex[0]))))/6;
 	    float volP3 = fabs(dot((prevVertices[0] - currentAppex[0]), cross((prevVertices[1] - currentAppex[0]), (prevVertices[3] - currentAppex[0]))))/6;	
 	    finalVol = (volP2 + volP3);
+            // if (index == 69) cases[*vol_index] = 17; 
 	  } 
 
       }// done case for vertex count == 4
@@ -489,6 +562,7 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 	  {
 	    float vol = fabs(dot((prevVertices[0] - v[0]), cross((prevVertices[1] - v[0]), (prevVertices[2] - v[0]))))/6;
 	    finalVol = totVolume - vol;
+            // if (index == 69) cases[*vol_index] = 19; 
 	  }
 	else
 	  {
@@ -496,9 +570,16 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 	    float volP2 = fabs(dot((prevVertices[0] - prevVertices[4]), cross((prevVertices[1] - prevVertices[4]), (prevVertices[3] - prevVertices[4]))))/6;
 	    float volP3 = fabs(dot((prevVertices[0] - prevVertices[4]), cross((prevVertices[2] - prevVertices[4]), (prevVertices[3] - prevVertices[4]))))/6;
 	    finalVol = (volP1 + volP2 + volP3);
+            // if (index == 69) cases[*vol_index] = 20; 
 	  }
       }
       // have to do initialisation yaar.
+      // if (index == 69)
+        {
+          // volume[*vol_index] = finalVol;
+   	  // *vol_index += 1;
+	}
+
       bins[index] += finalVol * kappa;
       binst[index] += finalVol;
 }

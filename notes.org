@@ -6,3 +6,6 @@
 ** There are issues with 5.6 and 5.7 itself, in later version its qapplication.h while 
    for 5.7 its QVTKApplication.h. And other similar naming convention issues.
 ** Try qwt, lets see....
+* Observations
+** Comparing results/plots with separate scalar fields tend to give same "interesting" iso-value.
+** Aah the nan errors are back :)
