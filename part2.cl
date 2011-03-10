@@ -14,7 +14,7 @@ float4 SortTetVertices ( float4 v[], float fs[])
 	      float swapf = fs[j];
 	      fs[j] = fs[j + 1];
 	      fs[j + 1] = swapf;
-
+	      
 	      float4 swapv = v[j];
 	      v[j] = v[j + 1];
 	      v[j + 1] = swapv;
@@ -88,11 +88,11 @@ FindGradient ( float4 *verts, float *fus)
 		      base[baseCount] = (float4)(x, y, z, 1);
       		      baseCount++;		      
       		    }
-
+		  
 		}
       	    }
       	}
-
+      
       if (baseCount < 3)
 	return grad;
       float4 v1v2 = base[1] - base[0];
@@ -100,7 +100,7 @@ FindGradient ( float4 *verts, float *fus)
       float4 crossp = cross(v1v2, v1v3);
       // We have to check this.
       float norm = sqrt(dot(crossp, crossp));
-
+      
       if (norm > 0)
 	{
 	  crossp = normalize(crossp);
@@ -124,7 +124,11 @@ FindGradient ( float4 *verts, float *fus)
   return grad;
 }
 
-void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float kappa,__global float increment, __global float minmax[], __global float *bins,__global float *binst)
+/* void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float kappa,__global float increment, __global float minmax[], __global float *bins,__global float *binst, __global float volume[], __global int *vol_index, __global int cases[]) */
+void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4],
+		       float kappa,__global float increment, 
+		       __global float minmax[], __global float *bins, 
+		       __global float *binst)
 {
   SortTetVertices (v, hs);
 
@@ -189,6 +193,8 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 		    {
 		      int flag_repeat = 0;
 		      int4 compare;
+		      if (hs[i] == hs[j])
+			continue;
 		      float t = (currentF - hs[j]) / (hs[i] - hs[j]);
 		      /* volume[*vol_index] = t;		       */
 		      /* *vol_index += 1; */
@@ -324,7 +330,6 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 	      
 	      else if(currentVertexCount == 4)
 		{
-		  mark = 1;
 		  currentAppex[0] = prevAppex[0];
 		  int x = prevCount ^ currentCount;
 		  if (x == 1)
@@ -346,22 +351,13 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 		
 		else if(prevVertexCount == 4)
 		  {
-		    mark = 1;
-		    prevAppex[0] = currentAppex[0];
-		    int x = prevCount ^ currentCount;
-		    if (x == 1)
-		      prevAppex[1] = v[0];
-		    else if (x == 2)
-		      prevAppex[1] = v[1];
-		    else if (x == 4)
-		      prevAppex[1] = v[2];
-		    else if (x == 8)
-		      prevAppex[1] = v[3];
-		    float volP1 = fabs(dot((prevVertices[0] - prevAppex[0]), cross((prevVertices[1] - prevAppex[0]), (prevVertices[2] - prevAppex[0]))))/6;
-		    float volP2 = fabs(dot((prevVertices[0] - prevAppex[0]), cross((prevVertices[2] - prevAppex[0]), (prevVertices[3] - prevAppex[0]))))/6;
-		    float volP3 = fabs(dot((prevVertices[0] - prevAppex[1]), cross((prevAppex[0] - prevAppex[1]), (prevVertices[3] - prevAppex[1]))))/6;
-		    float volT = fabs(dot((currentVertices[0] - currentAppex[0]), cross((currentVertices[1] - currentAppex[0]), (currentVertices[2] - currentAppex[0]))))/6;
-		    finalVol = (volP1 + volP2 + volP3 - volT);
+		    float volP1 = fabs(dot((currentVertices[1] - currentVertices[0]), cross((currentVertices[2] - currentVertices[0]), (prevVertices[2] - currentVertices[0]))))/6;
+		    float volP2 = fabs(dot((currentVertices[1] - currentVertices[0]), cross((prevVertices[2] - currentVertices[0]), (prevVertices[2] - currentVertices[0]))))/6;
+		    float volP3 = fabs(dot((prevVertices[0] - currentVertices[2]), cross((prevVertices[2] - currentVertices[2]), (prevVertices[3] - currentVertices[2]))))/6;
+		    float volP4 = fabs(dot((prevVertices[0] - currentVertices[2]), cross((prevVertices[1] - currentVertices[2]), (prevVertices[3] - currentVertices[2]))))/6;
+		    float volP5 = fabs(dot((prevVertices[0] - currentVertices[2]), cross((prevVertices[1] - currentVertices[2]), (currentVertices[1] - currentVertices[2]))))/6;
+		    // Volume of required surface
+		    finalVol = (volP1 + volP2 + volP3 + volP4 + volP5);
 		    // if (index == 69) cases[*vol_index] = 8;
 		  }
 		
@@ -393,71 +389,18 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 	      {
 		if (currentVertexCount == 1)
 		  {
-		    mark = 1;
-		    float4 n;
-		    n = (cross((prevVertices[1] - prevVertices[0]), (prevVertices[2] - prevVertices[0])));
-		    int sign = dot(n, (currentVertices[0] - prevVertices[0])) >= 0 ? 1 : 0;
-		    if (sign > 0)
-		      {
-			int count = prevCount;
-			int ind = 0;
-			for (int counta = 0; counta < 4; counta++)
-			  {
-			    if ((count & 0x0001) ^ 0x0001 == 0)
-			      currentAppex[ind++] = prevVertices[counta];
-			    count = count >> 1;
-			  }			  
-		      }
-		    else
-		      {
-			int count = prevCount;
-			int ind = 0;
-			for (int counta = 0; counta < 4; counta++)
-			  {
-			    if ((count & 0x0001) ^ 0x0001 == 1)
-			      currentAppex[ind++] = prevVertices[counta];
-			    count = count >> 1;
-			  }
-		      }
-		    float volP1 = fabs(dot((prevVertices[0] - currentAppex[0]), cross((prevVertices[1] - currentAppex[0]),(currentAppex[1] - currentAppex[0]))))/6;
-		    float volP2 = fabs(dot((prevVertices[0] - currentAppex[1]), cross((prevVertices[1] - currentAppex[1]),(prevVertices[2] - currentAppex[1]))))/6;
-		    float volP3 = fabs(dot((prevVertices[0] - currentAppex[1]), cross((prevVertices[1] - currentAppex[1]),(prevVertices[3] - currentAppex[1]))))/6;
-		    finalVol = (volP1 + volP2 + volP3);
+		    float volP1 = fabs(dot((prevVertices[0] - currentVertices[0]), cross((prevVertices[1] - currentVertices[0]), (prevVertices[3] - currentVertices[0]))))/6;
+		    float volP2 = fabs(dot((prevVertices[0] - currentVertices[0]), cross((prevVertices[2] - currentVertices[0]), (prevVertices[3] - currentVertices[0]))))/6;
+		    finalVol = (volP1 + volP2);
+
 		    // if (index == 69) cases[*vol_index] = 11;
 		  }
 
 		else if (prevVertexCount == 1)
 		  {
-		    float4 n;
-		    mark = 1;
-		    n = cross((currentVertices[1] - currentVertices[0]), (currentVertices[2] - currentVertices[0]));
-		    int sign = dot(n, (prevVertices[0] - currentVertices[0])) >= 0 ? 1 : 0;
-		    if (sign > 0)
-		      {
-			int count = currentCount;
-			int ind = 0;
-			for (int counta = 0; counta < 4; counta++)
-			  {
-			    if ((count & 0x0001) ^ 0x0001 == 0)
-			      prevAppex[ind++] = v[3 - counta];
-			    count = count >> 1;
-			  }			  
-		      }
-		    else
-		      {
-			int count = currentCount;
-			int ind = 0;
-			for (int counta = 0; counta < 4; counta++)
-			  {
-			    if ((count & 0x0001) ^ 0x0001 == 1)
-			      prevAppex[ind++] = v[3 - counta];
-			    count = count >> 1;
-			  }
-		      }
-		    float volP1 = fabs(dot((currentVertices[0] - prevAppex[0]), cross((currentVertices[1] - prevAppex[0]), (prevAppex[1] - prevAppex[0]))))/6;
-		    float volP2 = fabs(dot((currentVertices[0] - prevAppex[1]), cross((currentVertices[1] - prevAppex[1]), (currentVertices[2] - prevAppex[1]))))/6;
-		    float volP3 = fabs(dot((currentVertices[0] - prevAppex[1]), cross((currentVertices[1] - prevAppex[1]), (currentVertices[3] - prevAppex[1]))))/6;
-		    finalVol = (volP1 + volP2 + volP3);
+		    float volP1 = fabs(dot((currentVertices[0] - prevVertices[0]), cross((currentVertices[1] - prevVertices[0]), (currentVertices[3] - prevVertices[0]))))/6;
+		    float volP2 = fabs(dot((currentVertices[0] - prevVertices[1]), cross((currentVertices[2] - prevVertices[0]), (currentVertices[3] - prevVertices[0]))))/6;
+		    finalVol = (volP1 + volP2);
 		    // if (index == 69) cases[*vol_index] = 12;
 		  }
 		
@@ -505,6 +448,11 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 		        // if (index == 69) cases[*vol_index] = 15;
 		      }
 		  }		
+		else 
+		  {
+		    // This case is not yet happened in serial.
+		    finalVol = 0;
+		  }
 	      }
 
 	    // if (index == 69)
@@ -525,16 +473,30 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 	    prevCount = currentCount;
 	    prevAppex[0] = currentAppex[0];
 	    prevAppex[1] = currentAppex[1];
+	    
+	}
+      int flag_repeat = 0;
+      for (int vertcount = 0; vertcount < prevVertexCount; ++vertcount)
+	{
+	  if (v[m].x == prevVertices[vertcount].x && 
+	      v[m].y == prevVertices[vertcount].y && 
+	      v[m].z == prevVertices[vertcount].z)
+	    {
+	      flag_repeat = 1;
+	      break;
+	    }
+	}
+      if (flag_repeat == 0)
+	{
+	  if (prevVertexCount >= 3) incFlag += 1;
+	  prevVertices[prevVertexCount] = v[m];
+	  prevVertexCount++;
+	  prevCount |= (0x1 << (4-m));
+	}
+    }
 
-	  }
-	if (prevVertexCount >= 3) incFlag += 1;
-	prevVertices[prevVertexCount] = v[m];
-	prevVertexCount++;
-	prevCount |= (0x1 << (4-m));
-      }
-    if (prevVertexCount == 3)
+  if (prevVertexCount == 3)
       {
-	mark = 1;
 	finalVol = fabs(dot((prevVertices[0] - v[3]), cross((prevVertices[1] - v[3]), (prevVertices[2] - v[3]))))/6;
         // if (index == 69) cases[*vol_index] = 16; 
       }
@@ -556,6 +518,13 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
 	  } 
 
       }// done case for vertex count == 4
+    else if (prevVertexCount == 5)
+      {
+	float volP1 = fabs(dot((prevVertices[0] - prevVertices[1]), cross((prevVertices[2] - prevVertices[1]), (prevVertices[4] - prevVertices[1]))))/6;
+	float volP2 = fabs(dot((prevVertices[2] - prevVertices[1]), cross((prevVertices[3] - prevVertices[1]), (prevVertices[4] - prevVertices[1]))))/6;
+	finalVol = volP1 + volP2;
+      }// done case for vertex count == 5
+
     else if(prevVertexCount == 6)
       {
 	if (currentVertexCount == 3)
@@ -573,6 +542,10 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
             // if (index == 69) cases[*vol_index] = 20; 
 	  }
       }
+    else
+      {
+	finalVol = 0;
+      }
       // have to do initialisation yaar.
       // if (index == 69)
         {
@@ -584,54 +557,59 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4], float
       binst[index] += finalVol;
 }
 
-__kernel void part2(__global float4 (*vg)[8], __global float (*fsg)[8], __global float (*gsg)[8], __global float (*hsg)[8],__global int *kappaFlag, __global float range[],__global float *inc, __global float (*bins)[110], __global float (*binst)[110])
+/* __kernel void part2(__global float4 (*vg)[8], __global float (*fsg)[8], __global float (*gsg)[8], __global float (*hsg)[8],__global int *kappaFlag, __global float range[],__global float *inc, __global float (*bins)[110], __global float (*binst)[110], __global float volume[], __global int *index, __global int cases[]) */
+__kernel void part2(__global float4 (*vg)[8], __global float (*fsg)[8], 
+		    __global float (*gsg)[8], __global float (*hsg)[8],
+		    __global int *kappaFlag, __global float range[],
+		    __global float *inc, __global float (*bins)[110], 
+		    __global float (*binst)[110])
 {
-    //get our index in the array
-    unsigned int i = get_global_id(0);
-    
-    float4 v[24];
-    float fs[24], gs[24], hs[24];
-    int indices[] = {0, 1, 5, 6, 0, 1, 2, 6, 0, 2, 3, 6, 0, 4, 5, 6, 0, 4, 7, 6, 0, 3, 7, 6};
-    for (int j = 0; j < 24; j++)
-       {
-	 v[j] = vg[i][indices[j]];
-	 fs[j] = fsg[i][indices[j]];
-	 gs[j] = gsg[i][indices[j]];
-	 hs[j] = hsg[i][indices[j]];
-       }
-    for (int p = 0; p < 6; p++)
-       {         
-         float kappa = 1;
-    	 if (*kappaFlag == 1)
-       	    {
-	      float4 gradF = FindGradient (&v[p*4], &fs[p*4]);
-              float4 gradG = FindGradient (&v[p*4], &gs[p*4]);
-              float4 crossp = cross (gradF, gradG);
-              kappa = sqrt(dot(crossp, crossp));
-       	    }    
-	 PlotKappaForTet (&v[p*4], &fs[p*4], &gs[p*4], &hs[p*4], kappa, *inc, range, bins[i], binst[i]);
-       }
+  //get our index in the array
+  unsigned int i = get_global_id(0);
+  /* *index = 0; */
+  float4 v[24];
+  float fs[24], gs[24], hs[24];
+  int indices[] = {0, 1, 5, 6, 0, 1, 2, 6, 0, 2, 3, 6, 0, 4, 5, 6, 0, 4, 7, 6, 0, 3, 7, 6};
+  for (int j = 0; j < 24; j++)
+    {
+      v[j] = vg[i][indices[j]];
+      fs[j] = fsg[i][indices[j]];
+      gs[j] = gsg[i][indices[j]];
+      hs[j] = hsg[i][indices[j]];
+    }
+  for (int p = 0; p < 6; p++)
+    {         
+      float kappa = 1;
+      if (*kappaFlag == 1)
+	{
+	  float4 gradF = FindGradient (&v[p*4], &fs[p*4]);
+	  float4 gradG = FindGradient (&v[p*4], &gs[p*4]);
+	  float4 crossp = cross (gradF, gradG);
+	  kappa = sqrt(dot(crossp, crossp));
+	}    
+      PlotKappaForTet (&v[p*4], &fs[p*4], &gs[p*4], &hs[p*4], kappa, *inc, range, bins[i], binst[i]);
+    }
 }
 
 __kernel void initial(__global float (*bins)[110], __global float (*binst)[110])
 {
-    //get our index in the array
-    unsigned int i = get_global_id(0);
-    for(int j = 0; j < 110; j++)
-      {
-        bins[i][j] = 0; 
-        binst[i][j] = 0; 
-      }
+  //get our index in the array
+  unsigned int i = get_global_id(0);
+  for(int j = 0; j < 110; j++)
+    {
+      bins[i][j] = 0; 
+      binst[i][j] = 0; 
+    }
 }
 
 __kernel void summ(__global float (*binR)[110], __global float (*binstR)[110], __global float bins[110], __global float binst[110], __global int *p)
 {
-    //get our index in the array
-    unsigned int i = get_global_id(0);    
-    // bins[i] = binst[i] = 0;
-    for(int j = 0; j < *p; j++)
-      {
-        bins[i] += binR[j][i]; 
-        binst[i] += binstR[j][i]; 
-      }
+  //get our index in the array
+  unsigned int i = get_global_id(0);    
+  // bins[i] = binst[i] = 0;
+  for(int j = 0; j < *p; j++)
+    {
+      bins[i] += binR[j][i]; 
+      binst[i] += binstR[j][i]; 
+    }
 }
