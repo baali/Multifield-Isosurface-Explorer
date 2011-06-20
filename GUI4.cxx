@@ -368,6 +368,24 @@ void GUI4::WriteKappa (char *filename)
   line->SetInput(table, 0, 1);
   line->SetColor(255, 0, 0, 255);
   line->SetWidth(2.0);
+  
+  //Reading iso-statistics file and adding it 
+  // Plots
+  inputFilename = "statistics-kappa.csv";
+  reader->SetFileName(inputFilename.c_str());
+  reader->DetectNumericColumnsOn();
+  reader->SetFieldDelimiterCharacters(",");
+  reader->Update();
+  // std::cout << "done Second file"<< endl;
+  table = reader->GetOutput();
+
+  view->GetScene()->AddItem(chart);
+  line = chart->AddPlot(vtkChart::LINE);
+  line->SetInput(table, 0, 1);
+  line->SetColor(255, 0, 0, 255);
+  line->SetWidth(2.0);
+  chart->SetShowLegend(1);
+
   // Setting Axis labels(Figure out how to get greek symbols)
   // X-Axis
   vtkAxis* axis = chart->GetAxis(1);
