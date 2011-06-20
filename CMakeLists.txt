@@ -27,7 +27,7 @@ SET (SRCS
   main.cxx
 )
 
-SET(OPENCL_INCLUDE /home/baali/Cxx/opencl10)
+SET(OPENCL_INCLUDE opencl10/)
 # Use the include path and library for Qt that is used by VTK.
 INCLUDE_DIRECTORIES(
         ${QT_INCLUDE_DIR}
