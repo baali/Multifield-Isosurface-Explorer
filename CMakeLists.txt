@@ -42,8 +42,10 @@ QT4_WRAP_UI(UI_SRCS GUI4.ui)
 QT4_WRAP_CPP(MOC_SRCS GUI4.h)
 SET(SRCS ${SRCS} ${MOC_SRCS} GUI4.cxx GUI4.h)
 
-SET (LIBCXXFILES cll.cpp util.cpp part2.cpp )
-SET (cllib part2 )
+# SET (LIBCXXFILES cll.cpp util.cpp part2.cpp )
+# SET (cllib part2 )
+SET (LIBCXXFILES cll.cpp util.cpp pointData.cpp )
+SET (cllib pointData )
 ADD_LIBRARY(${cllib} ${LIBCXXFILES})
 
 SET(CMAKE_CXX_FLAGS "-g -Wall")
