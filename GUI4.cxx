@@ -181,7 +181,10 @@ void GUI4::OpenFile()
 {
   fileName = QFileDialog::getOpenFileName(this, tr("Open Dataset"), tr("VTK Files (*.vtk)")).toStdString();
   if(fileName == "")
-    return;
+    {      
+      printf("Cant open the file.\n");
+      return;
+    }
   ureader->SetFileName(fileName.c_str());
   ureader->ReadAllScalarsOn ();
   uGrid = ureader->GetOutput();
@@ -417,23 +420,53 @@ void GUI4::CalculateKappa()
   gArray = uGrid->GetPointData ()->GetScalars (scalarG.c_str());
   
   int numCells = uGrid->GetNumberOfCells ();
+  int numPoints = uGrid->GetNumberOfPoints();
+
   int ids[8];
   int idtet[4];
-  Vec4 (*v)[8] = new Vec4[100000][8];
-  float (*fs)[8] = new float[100000][8];
-  float (*gs)[8] = new float[100000][8];
-  float (*hs)[8] = new float[100000][8];
+  // Vec4 (*v)[8] = new Vec4[100000][8];
+  // float (*fs)[8] = new float[100000][8];
+  // float (*gs)[8] = new float[100000][8];
+  // float (*hs)[8] = new float[100000][8];
   int kappaFlag;
-  float (*binS)[110] = new float[100000][110];
-  float (*binsT)[110] = new float[100000][110];
+  // float (*binS)[110] = new float[100000][110];
+  // float (*binsT)[110] = new float[100000][110];
 
+  // Getting X, Y, Z dimensions of dataset
+  // There should be a way by which we can specify this
+  // apart from embedding x, y, z in dataset.
+  vtkDataArray *xArray = uGrid->GetPointData ()->GetScalars ("x");
+  vtkDataArray *yArray = uGrid->GetPointData ()->GetScalars ("y");
+  vtkDataArray *zArray = uGrid->GetPointData ()->GetScalars ("z");
+  double *xlim = xArray->GetRange();
+  double *ylim = yArray->GetRange();
+  double *zlim = zArray->GetRange();
+  int XDIM, YDIM, ZDIM;
+  // XDIM = atoi(argv[6]);
+  // YDIM = atoi(argv[7]);
+  // ZDIM = atoi(argv[8]);
+  XDIM = xlim[1] + 1;
+  YDIM = ylim[1] + 1;
+  ZDIM = zlim[1] + 1;
+
+  timeval tim;
+  double t1, t2, t3;
+
+  gettimeofday(&tim, NULL);
+  t1=tim.tv_sec+(tim.tv_usec/1000000.0);
+  
   //load and build our CL program from the file
   CL example;
-  std::ifstream file("../part2.cl");
+  // std::ifstream file("../part2.cl");
+  std::ifstream file("../pointData.cl");
   std::string source_str(
 			 std::istreambuf_iterator<char>(file),
 			 (std::istreambuf_iterator<char>()));
   example.loadProgram(source_str);
+
+  gettimeofday(&tim, NULL);
+  t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
+  printf("%.6lf seconds for building kernel\n", t2-t1);
   
   if (gArray != NULL)
     kappaFlag = 1;
@@ -453,71 +486,80 @@ void GUI4::CalculateKappa()
   increment = (minmax[1] - minmax[0]) / (float) BINS;
   // printf("increment is %f\n", increment);
   double *pt;
-  timeval tim;
-  double t1, t2, t3;
 
-  gettimeofday(&tim, NULL);
-  t1=tim.tv_sec+(tim.tv_usec/1000000.0);
-  
-  gettimeofday(&tim, NULL);
-  t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
-  printf("%.6lf seconds for building kernel\n", t2-t1);
-  
   double totalTime = 0;
   double tInitial, tFinal;
+
   int p = 0;
+  int step = 12;
+  Point *point = new Point[numPoints];  
+  numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
+  // Reduce step size in case of bigger dimension
+  while (numCells <= 300000)
+    {
+      step /= 2;
+      numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
+      if ( step <= 1)
+	{
+	  printf("Too small step size.\n");
+	  return;
+	}
+    }
+  float (*binS)[110] = new float[numCells][110];
+  float (*binsT)[110] = new float[numCells][110];
+
   if (increment > 0)
     {
-      for(int i = 0; i < numCells; i++)
+      for (int ptIndex = 0; ptIndex < numPoints; ptIndex++)
 	{
-	  vtkCell *cell = uGrid->GetCell (i);
-	  if (cell->GetCellType () == VTK_HEXAHEDRON)
+	  pt = uGrid->GetPoint (ptIndex);
+	  // pt = uGrid->GetPoint (ids[ptIndex]);
+	  // printf("%d\n", ids[ptIndex]);
+	  // printf("[%f, %f, %f]\n", pt[0], pt[1], pt[2]);
+	  point[ptIndex].v = Vec4(pt[0], pt[1], pt[2], 1);
+	  if (fArray->GetDataType () == VTK_FLOAT)
 	    {
-	      for (int j = 0; j < 8; j++)
-		{
-		  ids[j] = cell->GetPointId (j);
-		  pt = points->GetPoint (ids[j]);
-		  v[p][j] = Vec4(pt[0], pt[1], pt[2], 1);
-		  if (fArray->GetDataType () == VTK_FLOAT)
-		    {
-		      fs[p][j] = hs[p][j] = fArray->GetTuple1 (ids[j]);
-		      if (gArray != NULL)
-			gs[p][j] = gArray->GetTuple1 (ids[j]);
-		    }
-		}
-	      if ((i+1)%100000 == 0 and i != 0)
-		{		  
-		  gettimeofday(&tim, NULL);
-		  tInitial = tim.tv_sec+(tim.tv_usec/1000000.0);
-		  //our load data function sends our initial values to the GPU
-		  example.loadData(v, fs, gs, hs, kappaFlag, minmax, increment, p+1, binS, binsT);
-		  //initialize the kernel
-		  example.popCorn();
-		  example.runKernel(binS, binsT, bins, binst, p+1);
-		  p = -1;
-		  gettimeofday(&tim, NULL);
-		  tFinal = tim.tv_sec+(tim.tv_usec/1000000.0);
-		  totalTime += (tFinal - tInitial);
-		}
-	    }
-	  p += 1;
+	      // point[ptIndex].f = point[ptIndex].h = fArray->GetTuple1 (ids[ptIndex]);
+	      point[ptIndex].f = fArray->GetTuple1 (ptIndex);
+	      point[ptIndex].h = fArray->GetTuple1 (ptIndex);
+	      if (gArray != NULL)
+		// point[ptIndex].g = gArray->GetTuple1 (ids[ptIndex]);
+		point[ptIndex].g = gArray->GetTuple1 (ptIndex);
+	      // printf("%f, %f\n", point[ptIndex].f, point[ptIndex].g);
+	    }	      	      
 	}
-    }  
-  gettimeofday(&tim, NULL);
-  tInitial = tim.tv_sec+(tim.tv_usec/1000000.0);      
-  // Catching up all the remaining values
-  example.loadData(v, fs, gs, hs, kappaFlag, minmax, increment, p, binS, binsT);
-  //initialize the kernel
-  example.popCorn();
-  //this updates the particle system by calling the kernel
-  example.runKernel(binS, binsT, bins, binst, p);
-  gettimeofday(&tim, NULL);
-  tFinal = tim.tv_sec+(tim.tv_usec/1000000.0);
-  totalTime += (tFinal - tInitial);
-  std::cout<<totalTime<<" seconds elapsed on GPU\n";
-  
-  gettimeofday(&tim, NULL);
-  t3 = tim.tv_sec+(tim.tv_usec/1000000.0);
-  std::cout<<"Meanwhile "<<(t3-t2)-totalTime<<" seconds elapsed on CPU\n";
-  WriteKappa ("kappa.csv");
+      // return 0;
+      gettimeofday(&tim, NULL);
+      t3 = tim.tv_sec+(tim.tv_usec/1000000.0);
+      printf("Time spent to read all points %f\n", (t3-t2));
+      int batchCount = 0;
+      // Loop for covering batches
+      while ( batchCount <= ZDIM/step)
+	// while ( batchCount < 5)
+	{
+	  numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
+	  // printf("Number of cells in this case %d\n", numCells);
+	  example.loadPoints(point, 
+			     kappaFlag, minmax, increment, 
+			     batchCount, numCells, 
+			     XDIM, YDIM, ZDIM);
+	  example.loadArguments();
+	  example.pointKernel(binS, binsT, bins, binst, 
+			      numCells);
+	  batchCount += 1;
+	}
+      // Handling rest of cells
+      numCells = ((XDIM - 1)*(YDIM - 1)*(ZDIM - 1)) - 
+	(batchCount * ((XDIM - 1)*(YDIM - 1)*(step - 1)));
+      printf("Number of cells in this case %d\n", numCells);
+      example.loadPoints(point, 
+			 kappaFlag, minmax, increment, 
+			 batchCount, numCells, 
+			 XDIM, YDIM, ZDIM);
+      example.loadArguments();
+      example.pointKernel(binS, binsT, bins, binst, 
+			  numCells);
+      WriteKappa ("kappa.csv");
+      example.timing();
+    }
 }
