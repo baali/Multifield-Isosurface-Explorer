@@ -495,7 +495,7 @@ void GUI4::CalculateKappa()
   Point *point = new Point[numPoints];  
   numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
   // Reduce step size in case of bigger dimension
-  while (numCells <= 300000)
+  while (numCells > 300000)
     {
       step /= 2;
       numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
