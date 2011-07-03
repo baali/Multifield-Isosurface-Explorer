@@ -495,16 +495,16 @@ void GUI4::CalculateKappa()
   Point *point = new Point[numPoints];  
   numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
   // Reduce step size in case of bigger dimension
-  while (numCells > 300000)
-    {
-      step /= 2;
-      numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
-      if ( step <= 1)
-	{
-	  printf("Too small step size.\n");
-	  return;
-	}
-    }
+  // while (numCells > 300000)
+  //   {
+  //     step /= 2;
+  //     numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
+  //     if ( step <= 1)
+  // 	{
+  // 	  printf("Too small step size.\n");
+  // 	  return;
+  // 	}
+  //   }
   float (*binS)[110] = new float[numCells][110];
   float (*binsT)[110] = new float[numCells][110];
 
@@ -534,7 +534,7 @@ void GUI4::CalculateKappa()
       printf("Time spent to read all points %f\n", (t3-t2));
       int batchCount = 0;
       // Loop for covering batches
-      while ( batchCount <= ZDIM/step)
+      while ( batchCount < ZDIM/step)
 	// while ( batchCount < 5)
 	{
 	  numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
@@ -551,14 +551,17 @@ void GUI4::CalculateKappa()
       // Handling rest of cells
       numCells = ((XDIM - 1)*(YDIM - 1)*(ZDIM - 1)) - 
 	(batchCount * ((XDIM - 1)*(YDIM - 1)*(step - 1)));
-      printf("Number of cells in this case %d\n", numCells);
-      example.loadPoints(point, 
-			 kappaFlag, minmax, increment, 
-			 batchCount, numCells, 
-			 XDIM, YDIM, ZDIM);
-      example.loadArguments();
-      example.pointKernel(binS, binsT, bins, binst, 
-			  numCells);
+      if (numCells != 0)
+	{
+	  // printf("Number of cells in this case %d\n", numCells);
+	  example.loadPoints(point, 
+			     kappaFlag, minmax, increment, 
+			     batchCount, numCells, 
+			     XDIM, YDIM, ZDIM);
+	  example.loadArguments();
+	  example.pointKernel(binS, binsT, bins, binst, 
+			      numCells);
+	}
       WriteKappa ("kappa.csv");
       example.timing();
     }
