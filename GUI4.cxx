@@ -169,7 +169,7 @@ GUI4::~GUI4()
 void GUI4::UpdateCoords()
 {
   vtkNewChart* newchart = (vtkNewChart*)chart;
-  std::cout<<newchart->chartPos.X()<<" "<<newchart->chartPos.Y()<<endl;
+  // std::cout<<newchart->chartPos.X()<<" "<<newchart->chartPos.Y()<<endl;
   contours->SetValue(0, newchart->chartPos.X());
   horizontalSlider->setValue(newchart->chartPos.X());
   QString str;
@@ -214,7 +214,7 @@ void GUI4::OpenFile()
   // horizontalSlider->setTickInterval((dminmax[1] - dminmax[0])/100);
   // horizontalSlider->setSingleStep((dminmax[1] - dminmax[0])/100);
   horizontalSlider->setValue((dminmax[1] + dminmax[0])/2);
-  std::cout<<dminmax[1]<<" "<<dminmax[0]<<" "<<(dminmax[1] + dminmax[0])/2<<endl;
+  // std::cout<<dminmax[1]<<" "<<dminmax[0]<<" "<<(dminmax[1] + dminmax[0])/2<<endl;
   //setting initial value of TextLabel
   QString str;
   str.sprintf("%d", horizontalSlider->value());
@@ -267,7 +267,7 @@ void GUI4::UpdateSlider(int index)
   // horizontalSlider->setTickInterval((dminmax[1] - dminmax[0])/100);
   // horizontalSlider->setSingleStep((dminmax[1] - dminmax[0])/100);
   horizontalSlider->setValue((dminmax[1] + dminmax[0])/2);
-  std::cout<<dminmax[1]<<" "<<dminmax[0]<<" "<<(dminmax[1] + dminmax[0])/2<<endl;
+  // std::cout<<dminmax[1]<<" "<<dminmax[0]<<" "<<(dminmax[1] + dminmax[0])/2<<endl;
   //setting initial value of TextLabel
   QString str;
   str.sprintf("%d", horizontalSlider->value());
@@ -424,16 +424,16 @@ void GUI4::WriteKappa (char *filename)
   line->SetWidth(2.0);
   chart->SetShowLegend(1);
 
-  int row;
-  for(row = 0; row < numRows; row++)
-    {
-      float kappa = table->GetValue(row, 1).ToFloat();
-      float stat = statTable->GetValue(row, 1).ToFloat();
-      if (stat != kappa)
-	break;
-    }
-  if (row == numRows)
-    printf("No difference in curves\n");
+  // int row;
+  // for(row = 0; row < numRows; row++)
+  //   {
+  //     float kappa = table->GetValue(row, 1).ToFloat();
+  //     float stat = statTable->GetValue(row, 1).ToFloat();
+  //     if (stat != kappa)
+  // 	break;
+  //   }
+  // if (row == numRows)
+  //   printf("No difference in curves\n");
   // Setting Axis labels(Figure out how to get greek symbols)
   // X-Axis
   vtkAxis* axis = chart->GetAxis(1);
