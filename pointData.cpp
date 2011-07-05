@@ -163,7 +163,8 @@ void CL::loadArguments()
   // printf("Done loading arguments\n");
 }
 
-void CL::pointKernel(float (*binS)[110], float (*binsT)[110], float bins[110], float binst[110], int p)
+// void CL::pointKernel(float (*binS)[110], float (*binsT)[110], float bins[110], float binst[110], int p)
+void CL::pointKernel(float bins[110], float binst[110], int p)
 {
   // printf("Running kernel\n");
   gettimeofday(&tim, NULL);

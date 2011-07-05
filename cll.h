@@ -69,7 +69,7 @@ class CL {
   void loadPoints(Point *, int, float *, float, int, int, int, int, int);
 
   void loadArguments();
-  void pointKernel(float (*binsR)[110], float (*binstR)[110], float *, float *, int);
+  void pointKernel(float *, float *, int);
   void timing();
 
   // void loadData(Vec4 (*v)[8], float (*fs)[8],  float (*gs)[8], float (*hs)[8], int kappaFlag, float *, float, int, float (*bins)[110], float (*binst)[110]);

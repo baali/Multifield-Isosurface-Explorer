@@ -562,8 +562,8 @@ void GUI4::CalculateKappa()
   // 	  return;
   // 	}
   //   }
-  float (*binS)[110] = new float[numCells][110];
-  float (*binsT)[110] = new float[numCells][110];
+  // float (*binS)[110] = new float[numCells][110];
+  // float (*binsT)[110] = new float[numCells][110];
 
   if (increment > 0)
     {
@@ -601,8 +601,9 @@ void GUI4::CalculateKappa()
 			     batchCount, numCells, 
 			     XDIM, YDIM, ZDIM);
 	  example.loadArguments();
-	  example.pointKernel(binS, binsT, bins, binst, 
-			      numCells);
+	  // example.pointKernel(binS, binsT, bins, binst, 
+	  // 		      numCells);
+	  example.pointKernel(bins, binst, numCells);
 	  batchCount += 1;
 	}
       // Handling rest of cells
@@ -616,8 +617,9 @@ void GUI4::CalculateKappa()
 			     batchCount, numCells, 
 			     XDIM, YDIM, ZDIM);
 	  example.loadArguments();
-	  example.pointKernel(binS, binsT, bins, binst, 
-			      numCells);
+	  // example.pointKernel(binS, binsT, bins, binst, 
+	  // 		      numCells);
+	  example.pointKernel(bins, binst, numCells);
 	}
       WriteKappa ("kappa.csv");
       example.timing();
