@@ -459,6 +459,8 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4],
 	        // volume[*vol_index] = finalVol;
 		// *vol_index += 1;
 	      }
+	      if (isnan(finalVol))
+		finalVol = 0;
 	    bins[index] += finalVol * kappa;
 	    binst[index] += finalVol;
 	    prevF = currentF;
@@ -552,6 +554,8 @@ void PlotKappaForTet ( float4 v[4], float fs[4], float gs[4], float hs[4],
    	  // *vol_index += 1;
 	}
 
+      if (isnan(finalVol))
+	finalVol = 0;
       bins[index] += finalVol * kappa;
       binst[index] += finalVol;
 }
