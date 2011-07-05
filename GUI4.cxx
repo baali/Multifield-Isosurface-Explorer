@@ -86,6 +86,7 @@ Feature List
 #include <vtkContextScene.h>
 #include "vtkObjectFactory.h"
 #include <vtkAxis.h>
+#include <vtkVariant.h>
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -130,8 +131,8 @@ GUI4::GUI4()
 
   // create a window to make it stereo capable and give it to QVTKWidget
   vtkRenderWindow* renwin = vtkRenderWindow::New();
-  vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-  vtkActor* actor = vtkActor::New();
+  // vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+  // vtkActor* actor = vtkActor::New();
   
   // Set up the view
   view = vtkContextView::New();
@@ -144,7 +145,7 @@ GUI4::GUI4()
   qVTK2->SetRenderWindow(renwin);
   renwin->Delete();
 
-  QVTKInteractor *iren2=qVTK2->GetInteractor();
+  // QVTKInteractor *iren2=qVTK2->GetInteractor();
 
   // add a renderer
   Ren2 = vtkRenderer::New();
@@ -355,7 +356,7 @@ void GUI4::WriteKappa (char *filename)
   std::string inputFilename = "kappa.csv";
   vtkSmartPointer<vtkDelimitedTextReader> reader =
     vtkSmartPointer<vtkDelimitedTextReader>::New();
-  reader->SetFileName(inputFilename.c_str());
+  reader->SetFileName(filename);
   reader->DetectNumericColumnsOn();
   reader->SetFieldDelimiterCharacters(",");
   reader->Update();
@@ -366,29 +367,73 @@ void GUI4::WriteKappa (char *filename)
       chart->ClearPlots();       
       qVTK1->update();
     }
-  view->GetScene()->AddItem(chart);
-  line = chart->AddPlot(vtkChart::LINE);
-  line->SetInput(table, 0, 1);
-  line->SetColor(255, 0, 0, 255);
-  line->SetWidth(2.0);
-  
-  //Reading iso-statistics file and adding it 
-  // Plots
-  inputFilename = "statistics-kappa.csv";
-  reader->SetFileName(inputFilename.c_str());
-  reader->DetectNumericColumnsOn();
-  reader->SetFieldDelimiterCharacters(",");
-  reader->Update();
-  // std::cout << "done Second file"<< endl;
-  table = reader->GetOutput();
+  int numRows = table->GetNumberOfRows();
+  float max = 0;
+  for(int row = 0; row < numRows; row++)
+    {
+      float kappa = table->GetValue(row, 1).ToFloat();
+      if ( kappa > max)
+  	max = kappa;
+    }
+  for(int row = 0; row < numRows; row++)
+    {
+      float kappa = table->GetValue(row, 1).ToFloat();
+      table->SetValue(row, 1, (kappa/max));
+      kappa = table->GetValue(row, 1).ToFloat();
+    }
+  table->Update();
 
   view->GetScene()->AddItem(chart);
   line = chart->AddPlot(vtkChart::LINE);
   line->SetInput(table, 0, 1);
   line->SetColor(255, 0, 0, 255);
+  line->SetWidth(2.0);
+  // cleaning up table for new table data
+  // tableNorm->Dump();
+  //Reading iso-statistics file and adding it 
+  // Plots
+  vtkSmartPointer<vtkDelimitedTextReader> statsReader =
+    vtkSmartPointer<vtkDelimitedTextReader>::New();
+
+  inputFilename = "statistics-kappa.csv";
+  statsReader->SetFileName(inputFilename.c_str());
+  statsReader->DetectNumericColumnsOn();
+  statsReader->SetFieldDelimiterCharacters(",");
+  statsReader->Update();
+  // std::cout << "done Second file"<< endl;
+  vtkTable* statTable = statsReader->GetOutput();
+  max = 0;
+  for(int row = 0; row < numRows; row++)
+    {
+      float kappa = statTable->GetValue(row, 1).ToFloat();
+      if ( kappa > max)
+  	max = kappa;
+    }
+  for(int row = 0; row < numRows; row++)
+    {
+      float kappa = statTable->GetValue(row, 1).ToFloat();
+      statTable->SetValue(row, 1, (kappa/max));
+      kappa = statTable->GetValue(row, 1).ToFloat();
+    }
+  statTable->Update();
+
+  view->GetScene()->AddItem(chart);
+  line = chart->AddPlot(vtkChart::LINE);
+  line->SetInput(statTable, 0, 1);
+  line->SetColor(0, 255, 0, 255);
   line->SetWidth(2.0);
   chart->SetShowLegend(1);
 
+  int row;
+  for(row = 0; row < numRows; row++)
+    {
+      float kappa = table->GetValue(row, 1).ToFloat();
+      float stat = statTable->GetValue(row, 1).ToFloat();
+      if (stat != kappa)
+	break;
+    }
+  if (row == numRows)
+    printf("No difference in curves\n");
   // Setting Axis labels(Figure out how to get greek symbols)
   // X-Axis
   vtkAxis* axis = chart->GetAxis(1);
@@ -399,10 +444,22 @@ void GUI4::WriteKappa (char *filename)
   // Y-Axis
   axis = chart->GetAxis(0);
   axis->SetNotation(1);
-  axis->SetTitle("\psi("+comboBox->currentText().toStdString()+
+  axis->SetTitle("psi("+comboBox->currentText().toStdString()+
 		 ",{"+comboBox->currentText().toStdString()+
 		 ","+comboBox_2->currentText().toStdString()+
 		 "},r)");
+
+  // vtkSmartPointer<vtkLegendBoxActor> legend = 
+  //   vtkSmartPointer<vtkLegendBoxActor>::New();
+  // legend->SetNumberOfEntries(2);
+  // double color[3] = {1,0,0};
+  // legend->SetEntry(0, static_cast<vtkPolyData *> (NULL), "variation density", color);
+  // vtkSmartPointer<vtkLineSource> legendSource = 
+  //   vtkSmartPointer<vtkLineSource>::New();
+  // color = {0, 1, 0};
+  // vtkSmartPointer<vtkPolyData> legendLine = legendSource->GetOutput();
+  // legend->SetEntry(1, static_cast<vtkPolyData *> (NULL), "Isovalues Statistics", color);
+  // view->GetRenderer()->
   view->SetInteractor(qVTK1->GetInteractor());
   qVTK1->SetRenderWindow(view->GetRenderWindow());
   qVTK1->update();
@@ -413,7 +470,7 @@ void GUI4::CalculateKappa()
   vtkDataArray *fArray = NULL;
   vtkDataArray *gArray = NULL;
   vtkDataArray *hArray = NULL;
-  vtkPoints *points = uGrid->GetPoints ();
+  // vtkPoints *points = uGrid->GetPoints ();
   std::string scalarF = comboBox->currentText().toStdString();
   std::string scalarG = comboBox_2->currentText().toStdString();;
   fArray = uGrid->GetPointData ()->GetScalars (scalarF.c_str());
@@ -422,8 +479,8 @@ void GUI4::CalculateKappa()
   int numCells = uGrid->GetNumberOfCells ();
   int numPoints = uGrid->GetNumberOfPoints();
 
-  int ids[8];
-  int idtet[4];
+  // int ids[8];
+  // int idtet[4];
   // Vec4 (*v)[8] = new Vec4[100000][8];
   // float (*fs)[8] = new float[100000][8];
   // float (*gs)[8] = new float[100000][8];
@@ -487,10 +544,10 @@ void GUI4::CalculateKappa()
   // printf("increment is %f\n", increment);
   double *pt;
 
-  double totalTime = 0;
-  double tInitial, tFinal;
+  // double totalTime = 0;
+  // double tInitial, tFinal;
 
-  int p = 0;
+  // int p = 0;
   int step = 12;
   Point *point = new Point[numPoints];  
   numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
