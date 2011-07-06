@@ -152,7 +152,7 @@ GUI4::GUI4()
 
   // Setting up Contour filter
   contours = vtkContourFilter::New();
-  contours->UseScalarTreeOn();
+  // contours->UseScalarTreeOn();
   Connections = vtkEventQtSlotConnect::New();
   Connections->Connect(qVTK1->GetRenderWindow()->GetInteractor(),
 		       vtkCommand::LeftButtonPressEvent,
@@ -280,14 +280,14 @@ void GUI4::UpdateSlider(int index)
   contMapper->SetInput(contours->GetOutput());
   contMapper->SetScalarRange(0.0, 1.2);
 
-  // create an actor for the contours
+  // // create an actor for the contours
   contActor = vtkActor::New();
   contActor->SetMapper(contMapper);
   Ren2->Clear();
   Ren2->AddViewProp(contActor);
   Ren2->SetBackground(1,1,1);
-  contActor->Delete();
-  contMapper->Delete();
+  // contActor->Delete();
+  // contMapper->Delete();
   qVTK2->GetRenderWindow()->AddRenderer(Ren2);
   qVTK2->update();
   if(chart->GetNumberOfPlots() != 0)
@@ -388,8 +388,7 @@ void GUI4::WriteKappa (char *filename)
   line->SetInput(table, 0, 1);
   line->SetColor(255, 0, 0, 255);
   line->SetWidth(2.0);
-  // cleaning up table for new table data
-  // tableNorm->Dump();
+
   //Reading iso-statistics file and adding it 
   // Plots
   vtkSmartPointer<vtkDelimitedTextReader> statsReader =
@@ -424,16 +423,6 @@ void GUI4::WriteKappa (char *filename)
   line->SetWidth(2.0);
   chart->SetShowLegend(1);
 
-  // int row;
-  // for(row = 0; row < numRows; row++)
-  //   {
-  //     float kappa = table->GetValue(row, 1).ToFloat();
-  //     float stat = statTable->GetValue(row, 1).ToFloat();
-  //     if (stat != kappa)
-  // 	break;
-  //   }
-  // if (row == numRows)
-  //   printf("No difference in curves\n");
   // Setting Axis labels(Figure out how to get greek symbols)
   // X-Axis
   vtkAxis* axis = chart->GetAxis(1);
@@ -477,6 +466,7 @@ void GUI4::CalculateKappa()
   gArray = uGrid->GetPointData ()->GetScalars (scalarG.c_str());
   
   int numCells = uGrid->GetNumberOfCells ();
+  printf("Number of cells %d\n", numCells);
   int numPoints = uGrid->GetNumberOfPoints();
 
   // int ids[8];
@@ -548,9 +538,9 @@ void GUI4::CalculateKappa()
   // double tInitial, tFinal;
 
   // int p = 0;
-  int step = 12;
+  // int step = 12;
   Point *point = new Point[numPoints];  
-  numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
+  // numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
   // Reduce step size in case of bigger dimension
   // while (numCells > 300000)
   //   {
@@ -559,7 +549,8 @@ void GUI4::CalculateKappa()
   //     if ( step <= 1)
   // 	{
   // 	  printf("Too small step size.\n");
-  // 	  return;
+  //         step = 4;
+  // 	  // return;
   // 	}
   //   }
   // float (*binS)[110] = new float[numCells][110];
@@ -591,10 +582,12 @@ void GUI4::CalculateKappa()
       printf("Time spent to read all points %f\n", (t3-t2));
       int batchCount = 0;
       // Loop for covering batches
-      while ( batchCount < ZDIM/step)
+      numCells = 300000;
+      // while ( batchCount <= ZDIM/step)
+      while (batchCount <= ((XDIM - 1)*(YDIM - 1)*(ZDIM - 1)/numCells))
 	// while ( batchCount < 5)
 	{
-	  numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
+	  // numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
 	  // printf("Number of cells in this case %d\n", numCells);
 	  example.loadPoints(point, 
 			     kappaFlag, minmax, increment, 
@@ -607,8 +600,10 @@ void GUI4::CalculateKappa()
 	  batchCount += 1;
 	}
       // Handling rest of cells
-      numCells = ((XDIM - 1)*(YDIM - 1)*(ZDIM - 1)) - 
-	(batchCount * ((XDIM - 1)*(YDIM - 1)*(step - 1)));
+      // numCells = ((XDIM - 1)*(YDIM - 1)*(ZDIM - 1)) - 
+      //   (batchCount * ((XDIM - 1)*(YDIM - 1)*(step - 1)));
+      numCells  = ((XDIM - 1)*(YDIM - 1)*(ZDIM - 1)) - 
+        (batchCount * 100000);
       if (numCells != 0)
 	{
 	  // printf("Number of cells in this case %d\n", numCells);
@@ -624,4 +619,21 @@ void GUI4::CalculateKappa()
       WriteKappa ("kappa.csv");
       example.timing();
     }
+
+  // Isosurface of first scalar field.
+  // contours->SetInput(ureader->GetOutput());
+  // contours->SetValue(0, (dminmax[1] + dminmax[0])/2);
+  // vtkPolyDataMapper *contMapper = vtkPolyDataMapper::New();
+  // contMapper->SetInput(contours->GetOutput());
+  // contMapper->SetScalarRange(0.0, 1.2);
+
+  // // create an actor for the contours
+  // contActor = vtkActor::New();
+  // contActor->SetMapper(contMapper);
+  // Ren2->AddViewProp(contActor);
+  // Ren2->SetBackground(1,1,1);
+  // contActor->Delete();
+  // contMapper->Delete();
+  // qVTK2->GetRenderWindow()->AddRenderer(Ren2);
+  // qVTK2->update();
 }

@@ -30,8 +30,9 @@ void CL::loadPoints(Point *point, int kappaFlag, float range[],
 {
   // This step would change based on how many blocks are left after last 
   // iteration.
-  step = (numCells / ((XDIM - 1)*(YDIM - 1))) + 1;
-  int initCellId = batchCount * (XDIM - 1) * (YDIM - 1) * (step - 1);
+  // step = (numCells / ((XDIM - 1)*(YDIM - 1))) + 1;
+  // int initCellId = batchCount * (XDIM - 1) * (YDIM - 1) * (step - 1);
+  int initCellId = batchCount * 300000;
   int endCellId = initCellId + numCells - 1;
   // printf("Init cell id %d and end cell id %d\n", initCellId, endCellId);
   int initPointId = (initCellId % (XDIM - 1)) +
