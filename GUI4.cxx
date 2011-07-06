@@ -87,6 +87,7 @@ Feature List
 #include "vtkObjectFactory.h"
 #include <vtkAxis.h>
 #include <vtkVariant.h>
+#include <vtkPlotPoints.h>
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -388,6 +389,12 @@ void GUI4::WriteKappa (char *filename)
   line->SetInput(table, 0, 1);
   line->SetColor(255, 0, 0, 255);
   line->SetWidth(2.0);
+
+  vtkPlot *points = chart->AddPlot(vtkChart::POINTS);
+  points->SetInput(table, 0, 1);
+  points->SetColor(255, 0, 0, 255);
+  points->SetWidth(1.0);
+  vtkPlotPoints::SafeDownCast(points)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
 
   //Reading iso-statistics file and adding it 
   // Plots
