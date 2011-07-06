@@ -426,17 +426,20 @@ void GUI4::WriteKappa (char *filename)
   // Setting Axis labels(Figure out how to get greek symbols)
   // X-Axis
   vtkAxis* axis = chart->GetAxis(1);
-  axis->SetNotation(1);
   axis->SetTitle("isovalues ("+
 		 comboBox->currentText().toStdString()+")");
+  // axis->SetNumberOfTicks(10);
+  axis->SetNotation(0);
   axis->Delete();    
   // Y-Axis
   axis = chart->GetAxis(0);
-  axis->SetNotation(1);
+  axis->SetNotation(0);
+  // axis->SetMaximum(1.2);
   axis->SetTitle("psi("+comboBox->currentText().toStdString()+
 		 ",{"+comboBox->currentText().toStdString()+
 		 ","+comboBox_2->currentText().toStdString()+
 		 "},r)");
+  // axis->SetNotation(0);
 
   // vtkSmartPointer<vtkLegendBoxActor> legend = 
   //   vtkSmartPointer<vtkLegendBoxActor>::New();
@@ -584,7 +587,7 @@ void GUI4::CalculateKappa()
       // Loop for covering batches
       numCells = 300000;
       // while ( batchCount <= ZDIM/step)
-      while (batchCount <= ((XDIM - 1)*(YDIM - 1)*(ZDIM - 1)/numCells))
+      while (batchCount < ((XDIM - 1)*(YDIM - 1)*(ZDIM - 1)/numCells))
 	// while ( batchCount < 5)
 	{
 	  // numCells = ((XDIM - 1)*(YDIM - 1)*(step - 1));
