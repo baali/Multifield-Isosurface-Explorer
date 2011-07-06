@@ -369,6 +369,11 @@ void GUI4::WriteKappa (char *filename)
       qVTK1->update();
     }
   int numRows = table->GetNumberOfRows();
+  vtkSmartPointer<vtkFloatArray> varDensity =
+    vtkSmartPointer<vtkFloatArray>::New();
+  varDensity->SetNumberOfValues(100);
+  varDensity->SetName("Variation Density");
+  table->AddColumn(varDensity);
   float max = 0;
   for(int row = 0; row < numRows; row++)
     {
@@ -379,19 +384,18 @@ void GUI4::WriteKappa (char *filename)
   for(int row = 0; row < numRows; row++)
     {
       float kappa = table->GetValue(row, 1).ToFloat();
-      table->SetValue(row, 1, (kappa/max));
-      kappa = table->GetValue(row, 1).ToFloat();
+      table->SetValue(row, 2, (kappa/max));
     }
   table->Update();
 
   view->GetScene()->AddItem(chart);
   line = chart->AddPlot(vtkChart::LINE);
-  line->SetInput(table, 0, 1);
+  line->SetInput(table, 0, 2);
   line->SetColor(255, 0, 0, 255);
   line->SetWidth(2.0);
 
   vtkPlot *points = chart->AddPlot(vtkChart::POINTS);
-  points->SetInput(table, 0, 1);
+  points->SetInput(table, 0, 2);
   points->SetColor(255, 0, 0, 255);
   points->SetWidth(1.0);
   vtkPlotPoints::SafeDownCast(points)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
@@ -408,6 +412,11 @@ void GUI4::WriteKappa (char *filename)
   statsReader->Update();
   // std::cout << "done Second file"<< endl;
   vtkTable* statTable = statsReader->GetOutput();
+  vtkSmartPointer<vtkFloatArray> isoStats =
+    vtkSmartPointer<vtkFloatArray>::New();
+  isoStats->SetNumberOfValues(100);
+  isoStats->SetName("Isosurface statistics");
+  statTable->AddColumn(isoStats);
   max = 0;
   for(int row = 0; row < numRows; row++)
     {
@@ -418,14 +427,13 @@ void GUI4::WriteKappa (char *filename)
   for(int row = 0; row < numRows; row++)
     {
       float kappa = statTable->GetValue(row, 1).ToFloat();
-      statTable->SetValue(row, 1, (kappa/max));
-      kappa = statTable->GetValue(row, 1).ToFloat();
+      statTable->SetValue(row, 2, (kappa/max));
     }
   statTable->Update();
 
   view->GetScene()->AddItem(chart);
   line = chart->AddPlot(vtkChart::LINE);
-  line->SetInput(statTable, 0, 1);
+  line->SetInput(statTable, 0, 2);
   line->SetColor(0, 255, 0, 255);
   line->SetWidth(2.0);
   chart->SetShowLegend(1);
