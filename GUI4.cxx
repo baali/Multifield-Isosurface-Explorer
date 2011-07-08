@@ -176,6 +176,17 @@ void GUI4::UpdateCoords()
   QString str;
   str.sprintf("%f", newchart->chartPos.X());
   lineEdit->setText(str);
+
+  // vtkSmartPointer<vtkTable> table =
+  //   vtkSmartPointer<vtkTable>::New();
+  // table->SetNumberOfRows(1);
+  // table->SetValue(0, 0, newchart->chartPos.X());
+  // table->SetValue(0, 1, newchart->chartPos.X());
+  // vtkPlot *points = chart->AddPlot(vtkChart::POINTS);
+  // points->SetInput(table, 0, 2);
+  // points->SetColor(0, 0, 0, 255);
+  // points->SetWidth(1.0);
+  vtkPlotPoints::SafeDownCast(points)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
   qVTK2->update();
 }
 
@@ -449,7 +460,8 @@ void GUI4::WriteKappa (char *filename)
   // Y-Axis
   axis = chart->GetAxis(0);
   axis->SetNotation(0);
-  // axis->SetMaximum(1.2);
+  axis->SetMaximum(1.1);
+  axis->SetBehavior(1);
   axis->SetTitle("psi("+comboBox->currentText().toStdString()+
 		 ",{"+comboBox->currentText().toStdString()+
 		 ","+comboBox_2->currentText().toStdString()+
