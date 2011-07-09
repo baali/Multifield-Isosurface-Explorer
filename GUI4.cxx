@@ -450,6 +450,12 @@ void GUI4::WriteKappa (char *filename)
   line->SetWidth(2.0);
   chart->SetShowLegend(1);
 
+  points->SetInput(statTable, 0, 2);
+  points->SetColor(0, 255, 0, 255);
+  points->SetWidth(1.0);
+  points->SetLabel("");
+  vtkPlotPoints::SafeDownCast(points)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
+
   // Setting Axis labels(Figure out how to get greek symbols)
   // X-Axis
   vtkAxis* axis = chart->GetAxis(1);

@@ -59,13 +59,13 @@ class VTK_CHARTS_EXPORT vtkNewChart: public vtkChartXY
   static vtkNewChart* New();
   void SetTooltipInfo(const vtkContextMouseEvent& mouse,
 		      const vtkVector2f &plotPos,
-		      int seriesIndex, vtkPlot* plot)
+		      vtkIdType seriesIndex, vtkPlot* plot, vtkIdType segmentIndex)
   {
     /* chartPos.X = plotPos.X(); */
     /* chartPos.Y = plotPos.Y(); */
     chartPos = vtkVector2f(plotPos.X(), plotPos.Y());
-    /* std::cout<<plotPos.X()<<" "<<plotPos.Y()<<std::endl;     */
-    vtkChartXY::SetTooltipInfo(mouse, plotPos, seriesIndex, plot);
+    /* std::cout<<plotPos.X()<<" "<<plotPos.Y()<<std::endl; */
+    vtkChartXY::SetTooltipInfo(mouse, plotPos, seriesIndex, plot, segmentIndex);
   }
  protected:
   vtkNewChart(){
