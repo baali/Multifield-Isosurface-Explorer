@@ -26,13 +26,13 @@
 
 #include "vtkChart.h"
 #include "vtkSmartPointer.h" // For SP ivars
+#include "vtkVector.h" // For vtkVector2f in struct
 
 class vtkPlot;
 class vtkAxis;
 class vtkPlotGrid;
 class vtkChartLegend;
 class vtkTooltipItem;
-class vtkVector2f;
 class vtkChartXYPrivate; // Private class to keep my STL vector in...
 
 class VTK_CHARTS_EXPORT vtkChartXY : public vtkChart
@@ -40,9 +40,6 @@ class VTK_CHARTS_EXPORT vtkChartXY : public vtkChart
 public:
   vtkTypeMacro(vtkChartXY, vtkChart);
   virtual void PrintSelf(ostream &os, vtkIndent indent);
-  // Description:
-  // The tooltip item for the chart - can be used to display extra information.
-  vtkSmartPointer<vtkTooltipItem> Tooltip;
 
   // Description:
   // Creates a 2D Chart object.
@@ -106,6 +103,10 @@ public:
   virtual vtkChartLegend* GetLegend();
 
   // Description:
+  // Get the vtkTooltipItem object that will be displayed by the chart.
+  virtual vtkTooltipItem* GetTooltip();
+
+  // Description:
   // Get the number of axes in the current chart.
   virtual vtkIdType GetNumberOfAxes();
 
@@ -132,6 +133,14 @@ public:
   vtkSetMacro(HiddenAxisBorder, int);
   vtkGetMacro(HiddenAxisBorder, int);
 
+  // Description
+  // Force the axes to have their Minimum and Maximum properties inside the
+  // plot boundaries. It constrains pan and zoom interaction.
+  // False by default.
+  vtkSetMacro(ForceAxesToBounds, bool);
+  vtkGetMacro(ForceAxesToBounds, bool);
+  vtkBooleanMacro(ForceAxesToBounds, bool);
+
   // Description:
   // Set the width fraction for any bar charts drawn in this chart. It is
   // assumed that all bar plots will use the same array for the X axis, and that
@@ -142,11 +151,11 @@ public:
   vtkGetMacro(BarWidthFraction, float);
 
   // Description:
-  // Set the information passed to the tooltip
+  // Set the information passed to the tooltip.
   virtual void SetTooltipInfo(const vtkContextMouseEvent &,
                               const vtkVector2f &,
-                              int, vtkPlot*);
-  // virtual vtkStdString GetTooltipInfo();
+                              vtkIdType, vtkPlot*,
+                              vtkIdType segmentIndex = -1);
 
 //BTX
   // Description:
@@ -176,18 +185,12 @@ public:
   // Description:
   // Mouse wheel event, positive delta indicates forward movement of the wheel.
   virtual bool MouseWheelEvent(const vtkContextMouseEvent &mouse, int delta);
-
-  // Description:
-  // Try to locate a point within the plots to display in a tooltip
-  bool LocatePointInPlots(const vtkContextMouseEvent &mouse);
-
 //ETX
 
 //BTX
 protected:
   vtkChartXY();
   ~vtkChartXY();
-
 
   // Description:
   // Recalculate the necessary transforms.
@@ -220,16 +223,16 @@ protected:
   vtkSmartPointer<vtkChartLegend> Legend;
 
   // Description:
+  // The tooltip item for the chart - can be used to display extra information.
+  vtkSmartPointer<vtkTooltipItem> Tooltip;
+
+  // Description:
   // Does the plot area transform need to be recalculated?
   bool PlotTransformValid;
 
   // Description:
-  // The origin of the box when selecting a region of the chart.
-  float BoxOrigin[2];
-
-  // Description:
-  // The width and height of the selection box.
-  float BoxGeometry[2];
+  // The box created as the mouse is dragged around the screen.
+  vtkRectf MouseBox;
 
   // Description:
   // Should the box be drawn (could be selection, zoom etc).
@@ -263,6 +266,12 @@ protected:
   // code to be called.
   bool LayoutChanged;
 
+  // Description:
+  // Property to force the axes to have their Minimum and Maximum properties
+  // inside the plot boundaries. It constrains pan and zoom interaction.
+  // False by default.
+  bool ForceAxesToBounds;
+
 private:
   vtkChartXY(const vtkChartXY &); // Not implemented.
   void operator=(const vtkChartXY &);   // Not implemented.
@@ -274,12 +283,31 @@ private:
   void CalculateBarPlots();
 
   // Description:
+  // Try to locate a point within the plots to display in a tooltip.
+  // If invokeEvent is greater than 0, then an event will be invoked if a point
+  // is at that mouse position.
+  bool LocatePointInPlots(const vtkContextMouseEvent &mouse,
+                          int invokeEvent = -1);
+
+  // Description:
   // Remove the plot from the plot corners list.
   bool RemovePlotFromCorners(vtkPlot *plot);
 
   void ZoomInAxes(vtkAxis *x, vtkAxis *y, float *orign, float *max);
 
 //ETX
+};
+
+// Description:
+// Small struct used by InvokeEvent to send some information about the point
+// that was clicked on. This is an experimental part of the API, subject to
+// change.
+struct vtkChartPlotData
+{
+  vtkStdString SeriesName;
+  vtkVector2f Position;
+  vtkVector2i ScreenPosition;
+  int Index;
 };
 
 #endif //__vtkChartXY_h
