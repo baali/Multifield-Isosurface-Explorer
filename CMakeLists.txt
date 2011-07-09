@@ -44,7 +44,7 @@ SET(SRCS ${SRCS} ${MOC_SRCS} GUI4.cxx GUI4.h)
 
 # SET (LIBCXXFILES cll.cpp util.cpp part2.cpp )
 # SET (cllib part2 )
-SET (LIBCXXFILES cll.cpp util.cpp pointData.cpp )
+SET (LIBCXXFILES cll.cpp util.cpp pointData.cpp vtkChartLegend.cxx)
 SET (cllib pointData )
 ADD_LIBRARY(${cllib} ${LIBCXXFILES})
 

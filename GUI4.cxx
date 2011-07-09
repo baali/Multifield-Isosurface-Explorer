@@ -409,6 +409,7 @@ void GUI4::WriteKappa (char *filename)
   points->SetInput(table, 0, 2);
   points->SetColor(255, 0, 0, 255);
   points->SetWidth(1.0);
+  points->SetLabel("");
   vtkPlotPoints::SafeDownCast(points)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
 
   //Reading iso-statistics file and adding it 
