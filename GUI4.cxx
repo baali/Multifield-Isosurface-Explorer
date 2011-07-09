@@ -186,7 +186,7 @@ void GUI4::UpdateCoords()
   // points->SetInput(table, 0, 2);
   // points->SetColor(0, 0, 0, 255);
   // points->SetWidth(1.0);
-  vtkPlotPoints::SafeDownCast(points)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
+  // vtkPlotPoints::SafeDownCast(points)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
   qVTK2->update();
 }
 
