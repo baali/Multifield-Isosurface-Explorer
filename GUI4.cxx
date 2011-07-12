@@ -185,13 +185,20 @@ void GUI4::UpdateCoords()
   str.sprintf("%f", newchart->chartPos.X());
   lineEdit->setText(str);
 
-  // vtkSmartPointer<vtkTable> table =
+  // vtkSmartPointer<vtkTable> singlePoint =
   //   vtkSmartPointer<vtkTable>::New();
-  // table->SetNumberOfRows(1);
-  // table->SetValue(0, 0, newchart->chartPos.X());
-  // table->SetValue(0, 1, newchart->chartPos.X());
+  // vtkSmartPointer<vtkFloatArray> arrX =
+  //   vtkSmartPointer<vtkFloatArray>::New();
+  // singlePoint->AddColumn(arrX);
+  // vtkSmartPointer<vtkFloatArray> arrS =
+  //   vtkSmartPointer<vtkFloatArray>::New();
+  // singlePoint->AddColumn(arrS);
+
+  // singlePoint->SetNumberOfRows(1);
+  // singlePoint->SetValue(0, 0, newchart->chartPos.X());
+  // singlePoint->SetValue(0, 1, newchart->chartPos.Y());
   // vtkPlot *points = chart->AddPlot(vtkChart::POINTS);
-  // points->SetInput(table, 0, 2);
+  // points->SetInput(singlePoint, 0, 1);
   // points->SetColor(0, 0, 0, 255);
   // points->SetWidth(1.0);
   // vtkPlotPoints::SafeDownCast(points)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
@@ -635,7 +642,7 @@ void GUI4::CalculateKappa()
       printf("Time spent to read all points %f\n", (t3-t2));
       int batchCount = 0;
       // Loop for covering batches
-      numCells = 300000;
+      numCells = 100000;
       // while ( batchCount <= ZDIM/step)
       while (batchCount < ((XDIM - 1)*(YDIM - 1)*(ZDIM - 1)/numCells))
 	// while ( batchCount < 5)
