@@ -49,6 +49,7 @@ class vtkUnstructuredGridReader;
 class vtkUnstructuredGrid;
 class vtkContextView;
 class vtkPlot;
+class vtkTextActor;
 //class vtkChartXY;
 
 class VTK_CHARTS_EXPORT vtkNewChart: public vtkChartXY
@@ -101,6 +102,7 @@ protected:
   vtkRenderer* Ren1;
   vtkRenderer* Ren2;
   vtkContourFilter* contours;
+  vtkTextActor* textActor;
   vtkActor *contActor;
   std::string fileName;
   vtkUnstructuredGridReader *ureader;

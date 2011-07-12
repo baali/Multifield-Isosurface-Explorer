@@ -88,6 +88,8 @@ Feature List
 #include <vtkAxis.h>
 #include <vtkVariant.h>
 #include <vtkPlotPoints.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -154,6 +156,12 @@ GUI4::GUI4()
   // Setting up Contour filter
   contours = vtkContourFilter::New();
   // contours->UseScalarTreeOn();
+
+  textActor = vtkTextActor::New();
+  textActor->GetTextProperty()->SetFontSize ( 36 );
+  textActor->SetPosition2 ( 10, 40 );
+  textActor->GetTextProperty()->SetColor ( 1.0,0.0,0.0 );
+
   Connections = vtkEventQtSlotConnect::New();
   Connections->Connect(qVTK1->GetRenderWindow()->GetInteractor(),
 		       vtkCommand::LeftButtonPressEvent,
@@ -241,7 +249,11 @@ void GUI4::OpenFile()
   // create an actor for the contours
   contActor = vtkActor::New();
   contActor->SetMapper(contMapper);
+
+  textActor->SetInput ( scalarName.c_str());
+
   Ren2->AddViewProp(contActor);
+  Ren2->AddActor2D ( textActor );
   Ren2->SetBackground(1,1,1);
   contActor->Delete();
   contMapper->Delete();
@@ -285,6 +297,7 @@ void GUI4::UpdateSlider(int index)
   str.sprintf("%d", horizontalSlider->value());
   lineEdit->setText(str);
   //Updating the contour filter based on comboBox
+
   ureader->SetScalarsName (scalarName.c_str());
   contours->SetInput(ureader->GetOutput());
   contours->SetValue(0, (dminmax[1] + dminmax[0])/2);
@@ -295,8 +308,10 @@ void GUI4::UpdateSlider(int index)
   // // create an actor for the contours
   contActor = vtkActor::New();
   contActor->SetMapper(contMapper);
+  textActor->SetInput ( scalarName.c_str());
   Ren2->Clear();
   Ren2->AddViewProp(contActor);
+  Ren2->AddActor2D ( textActor );
   Ren2->SetBackground(1,1,1);
   // contActor->Delete();
   // contMapper->Delete();
