@@ -21,3 +21,12 @@ Kappa GUI Application Readme
 * Breakdown
 
 * Issues/TODOs
+
+* Credits
+  + [[http://drona.csa.iisc.ernet.in/~vijayn/][Vijay Natrajan]] For his guidance and feedback on the application.
+  + Suthambhara 
+  + [[https://github.com/ccluri][Chaitanya]] For all the help in getting GUI setup and other tweeks working.
+  + [[https://github.com/punchagan][punchagan]]
+  + VTK Example kits for Qt and others
+  + OpenCL tutorials and source code from [[http://enja.org/][enja]]. Base of all openCL code for this
+    application was taken from his [[https://github.com/enjalot/adventures_in_opencl/][github]] repository.
