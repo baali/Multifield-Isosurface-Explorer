@@ -167,6 +167,21 @@ GUI4::GUI4()
 		       vtkCommand::LeftButtonPressEvent,
 		       this,
 		       SLOT(UpdateCoords()));
+
+  // Building the kernel
+  timeval tim;
+  double t1, t2;
+  gettimeofday(&tim, NULL);
+  t1=tim.tv_sec+(tim.tv_usec/1000000.0);
+  
+  std::ifstream file("../pointData.cl");
+  std::string source_str(
+			 std::istreambuf_iterator<char>(file),
+			 (std::istreambuf_iterator<char>()));
+  example.loadProgram(source_str);
+  gettimeofday(&tim, NULL);
+  t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
+  printf("%.6lf seconds for building kernel\n", t2-t1);
 }
 
 GUI4::~GUI4()
@@ -559,22 +574,6 @@ void GUI4::CalculateKappa()
   timeval tim;
   double t1, t2, t3;
 
-  gettimeofday(&tim, NULL);
-  t1=tim.tv_sec+(tim.tv_usec/1000000.0);
-  
-  //load and build our CL program from the file
-  CL example;
-  // std::ifstream file("../part2.cl");
-  std::ifstream file("../pointData.cl");
-  std::string source_str(
-			 std::istreambuf_iterator<char>(file),
-			 (std::istreambuf_iterator<char>()));
-  example.loadProgram(source_str);
-
-  gettimeofday(&tim, NULL);
-  t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
-  printf("%.6lf seconds for building kernel\n", t2-t1);
-  
   if (gArray != NULL)
     kappaFlag = 1;
   

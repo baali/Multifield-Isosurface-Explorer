@@ -105,6 +105,10 @@ protected:
   vtkTextActor* textActor;
   vtkActor *contActor;
   std::string fileName;
+
+  //load and build our CL program from the file
+  CL example;
+
   vtkUnstructuredGridReader *ureader;
   vtkUnstructuredGrid *uGrid;
   vtkContextView *view;
