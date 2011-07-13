@@ -1,0 +1,23 @@
+Kappa GUI Application Readme
+
+* Overview
+
+* Installation
+  Download Kappa-app from github
+  $ git clone https://github.com/baali/Kappa-app.git
+  $ cd Kappa-app
+  $ mkdir build
+  $ cd build
+  $ cmake ..
+  $ make
+
+  + Dependencies
+    - OpenCL drivers.
+    - VTK 5.9+ build with 
+      cmake -DVTK_USE_QT=ON -DVTK_USE_GUISUPPORT=ON -DBUILD_SHARED_LIBS=ON 
+
+* Usage
+
+* Breakdown
+
+* Issues/TODOs
