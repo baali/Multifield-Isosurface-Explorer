@@ -615,6 +615,7 @@ void GUI4::CalculateKappa()
   // float (*binS)[110] = new float[numCells][110];
   // float (*binsT)[110] = new float[numCells][110];
 
+  gettimeofday(&tim, NULL);      
   t2 = tim.tv_sec+(tim.tv_usec/1000000.0);
   if (increment > 0)
     {
