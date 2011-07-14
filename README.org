@@ -1,6 +1,11 @@
 Kappa GUI Application Readme
 
 * Overview
+  Its an application to calculate variation density function that profiles 
+  the relationship between multiple scalar fields over isosurfaces of a 
+  given scalar field. This profile serves as a valuable tool for 
+  multi-field data exploration because it provides the user with cues to 
+  identify interesting isovalues of scalar fields
 
 * Installation
   Download Kappa-app from github
@@ -17,10 +22,37 @@ Kappa GUI Application Readme
       cmake -DVTK_USE_QT=ON -DVTK_USE_GUISUPPORT=ON -DBUILD_SHARED_LIBS=ON 
 
 * Usage
-
+  + To start application navigate to build folder and either double clik
+    qtevents file or in terminal type
+    $ ./qtevents
+  + This application works for Unstructured data grid with multiple 
+    scalar fields.
+  + Select two scalar fields from drop down menu, among which you want to 
+    calculate variation density. 
+  + The IsoSurface shown in the separate window if for scalar field in first 
+    drop down list. 
+  + Hit calculate button to get the variation density curve between the 
+    fields. There will be two charts displayed, one is of Variation Density
+    function and other one is for IsoSruface Statistics.
+  + To change values for which IsoSurface is calculated you can either click 
+    on points displayed in the Chart, use slider or the text box.
+    
 * Breakdown
+  + The GUI Part
+    - GUI4.ui is the UI design of application.
+    - GUI4.h and GUI4.cxx are files where all the signals and slots are 
+      defined. 
+  + OpenCL part
+    - pointData.cl is the kernel file.
+    - Points.Cxx takes care of creating buffers, passing the data to GPU
+      and invoking kernel.
+    - cll.cpp and cll.h are files which take care of Hardware detection, 
+      kernel compilation and all.
 
 * Issues/TODOs
+  + Not able to highlight the selected point on the chart.
+  + Still there are cases when I am getting NaN during calculations, locate 
+    and handle the cases.
 
 * Credits
   + [[http://drona.csa.iisc.ernet.in/~vijayn/][Vijay Natrajan]] For his guidance and feedback on the application.
