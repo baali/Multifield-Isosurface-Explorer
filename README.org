@@ -5,7 +5,8 @@ Kappa GUI Application Readme
   the relationship between multiple scalar fields over isosurfaces of a 
   given scalar field. This profile serves as a valuable tool for 
   multi-field data exploration because it provides the user with cues to 
-  identify interesting isovalues of scalar fields
+  identify interesting isovalues of scalar fields. It is based on paper
+  about [[http://vgl.serc.iisc.ernet.in/pub/paper.php?pid=013][Relation-aware isosurface extraction in multi-field data]]
 
 * Installation
   Download Kappa-app from github
