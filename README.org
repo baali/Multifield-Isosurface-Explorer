@@ -6,16 +6,16 @@ Kappa GUI Application Readme
   given scalar field. This profile serves as a valuable tool for 
   multi-field data exploration because it provides the user with cues to 
   identify interesting isovalues of scalar fields. It is based on paper
-  about [[http://vgl.serc.iisc.ernet.in/pub/paper.php?pid=013][Relation-aware isosurface extraction in multi-field data]]
+  about [[http://vgl.serc.iisc.ernet.in/pub/paper.php?pid=013][Relation-aware isosurface extraction in multi-field data]].
 
 * Installation
   Download Kappa-app from github
-  $ git clone https://github.com/baali/Kappa-app.git
-  $ cd Kappa-app
-  $ mkdir build
-  $ cd build
-  $ cmake ..
-  $ make
+  + $ git clone https://github.com/baali/Kappa-app.git
+  + $ cd Kappa-app
+  + $ mkdir build
+  + $ cd build
+  + $ cmake ..
+  + $ make
 
   + Dependencies
     - OpenCL drivers.
@@ -29,21 +29,20 @@ Kappa GUI Application Readme
   + This application works for Unstructured data grid with multiple 
     scalar fields.
   + Select two scalar fields from drop down menu, among which you want to 
-    calculate variation density. 
-  + The IsoSurface shown in the separate window if for scalar field in first 
+    calculate variation density function. 
+  + The isosurface shown in the separate window if for scalar field in first 
     drop down list. 
-  + Hit calculate button to get the variation density curve between the 
-    fields. There will be two charts displayed, one is of Variation Density
-    function and other one is for IsoSruface Statistics.
-  + To change values for which IsoSurface is calculated you can either click 
-    on points displayed in the Chart, use slider or the text box.
+  + There will be two charts displayed after calculations are over, one is 
+    of Variation Density function and other one is for isosurface Statistics.
+  + To change isovalues, you can either click on points displayed in the 
+    Chart, use slider or the text box.
     
 * Breakdown
-  + The GUI Part
+  + GUI 
     - GUI4.ui is the UI design of application.
     - GUI4.h and GUI4.cxx are files where all the signals and slots are 
       defined. 
-  + OpenCL part
+  + OpenCL 
     - pointData.cl is the kernel file.
     - Points.Cxx takes care of creating buffers, passing the data to GPU
       and invoking kernel.
@@ -53,13 +52,14 @@ Kappa GUI Application Readme
 * Issues/TODOs
   + Not able to highlight the selected point on the chart.
   + Still there are cases when I am getting NaN during calculations, locate 
-    and handle the cases.
+    and handle them.
 
 * Credits
   + [[http://drona.csa.iisc.ernet.in/~vijayn/][Vijay Natrajan]] For his guidance and feedback on the application.
   + Suthambhara 
-  + [[https://github.com/ccluri][Chaitanya]] For all the help in getting GUI setup and other tweeks working.
+  + [[https://github.com/ccluri][Chaitanya]] and Dilip for all the help in getting GUI setup and other 
+    tweeks working.
   + [[https://github.com/punchagan][punchagan]]
-  + VTK Example kits for Qt and others
+  + Code base for GUI are taken from VTK Example kits for Qt.
   + OpenCL tutorials and source code from [[http://enja.org/][enja]]. Base of all openCL code for this
     application was taken from his [[https://github.com/enjalot/adventures_in_opencl/][github]] repository.
