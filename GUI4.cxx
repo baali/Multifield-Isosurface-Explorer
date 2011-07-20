@@ -199,24 +199,31 @@ void GUI4::UpdateCoords()
   QString str;
   str.sprintf("%f", newchart->chartPos.X());
   lineEdit->setText(str);
+  
+  if( chart->GetNumberOfPlots() == 5)
+    chart->RemovePlot(4);
 
-  // vtkSmartPointer<vtkTable> singlePoint =
-  //   vtkSmartPointer<vtkTable>::New();
-  // vtkSmartPointer<vtkFloatArray> arrX =
-  //   vtkSmartPointer<vtkFloatArray>::New();
-  // singlePoint->AddColumn(arrX);
-  // vtkSmartPointer<vtkFloatArray> arrS =
-  //   vtkSmartPointer<vtkFloatArray>::New();
-  // singlePoint->AddColumn(arrS);
+  vtkSmartPointer<vtkTable> stable =
+    vtkSmartPointer<vtkTable>::New();
+  vtkSmartPointer<vtkFloatArray> arrX =
+    vtkSmartPointer<vtkFloatArray>::New();
+  arrX->SetName("X Axis");
+  stable->AddColumn(arrX);
+  vtkSmartPointer<vtkFloatArray> arrC =
+    vtkSmartPointer<vtkFloatArray>::New();
+  arrC->SetName("Cosine");
+  stable->AddColumn(arrC);
+  int numPoints = 1;
+  stable->SetNumberOfRows(numPoints);
+  stable->SetValue(0, 0, newchart->chartPos.X());
+  stable->SetValue(0, 1, newchart->chartPos.Y());
+  vtkPlot *Spoints = chart->AddPlot(vtkChart::POINTS);
+  Spoints->SetLabel("");
+  Spoints->SetInput(stable, 0, 1);
+  Spoints->SetColor(0, 0, 0, 255);
+  Spoints->SetWidth(1.2);
+  vtkPlotPoints::SafeDownCast(Spoints)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
 
-  // singlePoint->SetNumberOfRows(1);
-  // singlePoint->SetValue(0, 0, newchart->chartPos.X());
-  // singlePoint->SetValue(0, 1, newchart->chartPos.Y());
-  // vtkPlot *points = chart->AddPlot(vtkChart::POINTS);
-  // points->SetInput(singlePoint, 0, 1);
-  // points->SetColor(0, 0, 0, 255);
-  // points->SetWidth(1.0);
-  // vtkPlotPoints::SafeDownCast(points)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
   qVTK2->update();
 }
 
