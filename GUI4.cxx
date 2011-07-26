@@ -221,8 +221,8 @@ void GUI4::UpdateCoords()
   Spoints->SetLabel("");
   Spoints->SetInput(stable, 0, 1);
   Spoints->SetColor(0, 0, 0, 255);
-  Spoints->SetWidth(1.2);
   vtkPlotPoints::SafeDownCast(Spoints)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
+  vtkPlotPoints::SafeDownCast(Spoints)->SetMarkerSize(12);
 
   qVTK2->update();
 }
