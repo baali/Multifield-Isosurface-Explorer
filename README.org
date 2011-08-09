@@ -1,41 +1,70 @@
 Kappa GUI Application Readme
 
 * Overview
-  Its an application to calculate variation density function that profiles 
-  the relationship between multiple scalar fields over isosurfaces of a 
-  given scalar field. This profile serves as a valuable tool for 
-  multi-field data exploration because it provides the user with cues to 
-  identify interesting isovalues of scalar fields. It is based on paper
-  about [[http://vgl.serc.iisc.ernet.in/pub/paper.php?pid=013][Relation-aware isosurface extraction in multi-field data]].
-
+  Identification of important isovalues of scalar fields is a well studied 
+  problem. In this application we have used a relation-aware method to 
+  explore scalar multifield data. In the context of multi-field data,
+  we calculate a variation density function, whose profile is a good 
+  indicator of interesting isovalues of individual scalar fields. It is 
+  based on paper about [[http://vgl.serc.iisc.ernet.in/pub/paper.php?pid=013][Relation-aware isosurface extraction in multi-field data]].
+  As part of the application, we have a graph viewer to plot the variation
+  density function against isovalues and an Isosurface viewer to interact 
+  with Isosarfaces.
+#+LaTeX: \newpage
 * Installation
   Download Kappa-app from github
-  + $ git clone https://github.com/baali/Kappa-app.git
-  + $ cd Kappa-app
-  + $ mkdir build
-  + $ cd build
-  + $ cmake ..
-  + $ make
+  #+BEGIN_SRC shell
+  $ git clone https://github.com/baali/Kappa-app.git
+  $ cd Kappa-app
+  $ mkdir build
+  $ cd build
+  $ cmake ..
+  $ make
+  #+END_SRC
 
   + Dependencies
     - OpenCL drivers.
     - VTK 5.9+ build with 
+      #+BEGIN_SRC shell
       cmake -DVTK_USE_QT=ON -DVTK_USE_GUISUPPORT=ON -DBUILD_SHARED_LIBS=ON 
+      #+END_SRC
+#+LaTeX: \newpage      
 
 * Usage
   + To start application navigate to build folder and either double clik
     qtevents file or in terminal type
+
     $ ./qtevents
+
+    At start application looks like this:
+
+    #+ATTR_LaTeX: width=10cm
+    [[./images/app_start.png]]
+
   + This application works for Unstructured data grid with multiple 
-    scalar fields.
+    scalar fields. 
+
   + Select two scalar fields from drop down menu, among which you want to 
     calculate variation density function. 
-  + The isosurface shown in the separate window if for scalar field in first 
+  + The isosurface shown in one of the window is for scalar field in first 
     drop down list. 
+
+    #+ATTR_LaTeX: width=10cm
+    [[./images/load_file.png]]
+
+    #+LaTeX: \newpage
   + There will be two charts displayed after calculations are over, one is 
     of Variation Density function and other one is for isosurface Statistics.
+
+    #+ATTR_LaTeX: width=10cm
+    [[./images/calculation.png]]
+
+    #+LaTeX: \newpage
   + To change isovalues, you can either click on points displayed in the 
     Chart, use slider or the text box.
+
+    #+ATTR_LaTeX: width=10cm 
+    [[./images/interaction.png]]
     
 * Breakdown
   + GUI 
@@ -55,8 +84,9 @@ Kappa GUI Application Readme
     and handle them.
 
 * Credits
-  + [[http://drona.csa.iisc.ernet.in/~vijayn/][Vijay Natrajan]] For his guidance and feedback on the application.
-  + Suthambhara 
+  + [[http://drona.csa.iisc.ernet.in/~vijayn/][Vijay Natrajan]] for his guidance and feedback.
+  + Suthambhara, it was his code base and research work which is behind this 
+    application.
   + [[https://github.com/ccluri][Chaitanya]] and Dilip for all the help in getting GUI setup and other 
     tweeks working.
   + [[https://github.com/punchagan][punchagan]]
