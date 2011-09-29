@@ -20,7 +20,7 @@
 * Installation
   Download Kappa-app from github
   #+BEGIN_SRC shell
-  $ git clone https://github.com/baali/Kappa-app.git
+  $ git clone https://github.com/baali/Multifield-Isosurface-Explorer
   $ cd Kappa-app
   $ mkdir build
   $ cd build
